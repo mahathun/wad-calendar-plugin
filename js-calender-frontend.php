@@ -1,31 +1,6 @@
 <?php
 
-/*
-Plugin Name: Event Calander -(TDM)
-Plugin URI: http://facebook.com/mahathun
-Description: This is plugin which elaborate an event calander.
-Author: Tharindu Mahavithana
-Version: 1.0
-Author URI: http://facebook.com/mahathun
-*/
 
-/* DEBUGGING NOTE
- * Change the line 81 of the wp-config.php file in the Wordpress root folder
- * from 	define('WP_DEBUG', false);
- * to		define('WP_DEBUG', true);
- * This will enable the debugging and any error messages.
-*/
-/* CHANGELOG
-	29MAR2016 - Initial release.
-	30MAR3026 - added extra comments 7 references. added previous and next month dates
-*/
-/*-------------------------------------------------------------------------
- * Shortcode hooks 	  - http://codex.wordpress.org/Shortcode_API
- *				   	  - http://codex.wordpress.org/Function_Reference/add_shortcode
- * 				   	  - http://codex.wordpress.org/Function_Reference/shortcode_atts
- * PHP date functions - http://php.net/manual/en/ref.datetime.php
- -------------------------------------------------------------------------*/
- 
 //simple variable debug function
 //usage: pr($avariable);
 if (!function_exists('pr')) {
@@ -46,7 +21,7 @@ function WAD_2016_scripts() {
 }
 
 //----------------------------------------shortcodes---------------------------------
- add_shortcode('wadcal2016','WADcal1');
+ add_shortcode('wadcal-DJK','WADcal1');
 
 //----------------------------------------------------------------------------------
 
