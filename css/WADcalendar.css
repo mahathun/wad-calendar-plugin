@@ -29,7 +29,8 @@ html,body{margin:0;padding:0;border:0;font-size:100%;height:100%}
     border-top: 1px solid #eee;
     padding: 20px 2px 2px; /* 20px for the gap between the cell data and the top of the cell, 2px for the row gap */
     min-height: 50px;
-    position: relative; 
+    position: relative;
+    overflow: hidden; 
 
 }
 
