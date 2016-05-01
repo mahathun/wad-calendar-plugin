@@ -93,6 +93,7 @@ function get_events($year, $month){
 				"event_location_id" => $event->event_location_id,
 
 
+
 				"event_year" => $d["year"],
 				"event_month" => $d["month"],
 				"event_day" => $d["day"]);
@@ -307,6 +308,10 @@ function WADcal1($shortcodeattributes) {
 			$('#eventLocationId').text("");//loading the finish date of the selected event
 
 
+
+
+			
+
 		})
 
 
@@ -360,13 +365,13 @@ function WADcal1($shortcodeattributes) {
 
 		//eventID = eventData.event_id;
 
-
 		jQuery('#eventModalTitle').text(eventData.event_name);
 		
 		jQuery('#eventName').text(eventData.event_name);
 		jQuery('#eventStatus').text((eventData.event_status==0)?"Draft":"Published");
 		jQuery('#eventType').text((eventData.event_type==0)?"Non-Recurring":(eventData.event_type==1)?"Daily":(eventData.event_type==2)?"Weekly":"Monthly");
 
+				
 
 
 		jQuery( document ).ready( function( $ ) 
@@ -507,26 +512,23 @@ function WADcal1($shortcodeattributes) {
 						eventData.event_location_id = newValue;
 				    	$(element).attr('event-data', JSON.stringify(eventData)); 
 				    	
-				    	
+					    	 $.ajax({
+							      url:"?eventEdit=true&action=getLocationNames",  
+							      success:function(data) {
+							      	var sourceObj = JSON.parse(data);
+							      	for (var i = sourceObj.length - 1; i >= 0; i--) {
+							      		
+							      		if(sourceObj[i].value==newValue){
+							      			
+					    					initialize(sourceObj[i].text);
 
+							      		}
+							      	};
+							         
+							       
 
-				    	 $.ajax({
-						      url:"?eventEdit=true&action=getLocationNames",  
-						      success:function(data) {
-						      	var sourceObj = JSON.parse(data);
-						      	for (var i = sourceObj.length - 1; i >= 0; i--) {
-						      		alert(sourceObj[i].value +" - " + newValue);
-						      		if(sourceObj[i].value==newValue){
-						      			alert(sourceObj[i]);
-				    					initialize(sourceObj[i].text);
-
-						      		}
-						      	};
-						         
-						         alert(newValue);
-
-						      }
-						   });
+							      }
+							   });
 					}
 				   // viewformat: "dd/mm/yyyy hh:ii",    
 				    //value:eventData.event_finish,
@@ -534,6 +536,25 @@ function WADcal1($shortcodeattributes) {
 				    
 				});
 
+
+
+				
+				setTimeout(function(){$.ajax({
+							      url:"?eventEdit=true&action=getLocationNames",  
+							      success:function(data) {
+							      	var sourceObj = JSON.parse(data);
+							      	for (var i = sourceObj.length - 1; i >= 0; i--) {
+							      		
+							      		if(sourceObj[i].value==eventData.event_location_id){
+							      			
+					    					initialize(sourceObj[i].text);
+
+							      		}
+							      	};
+							         
+							         
+							      }
+							   });},50);
 			  // $("#addCategory").editable({
 				 //    type: "text",
 				 //    pk: eventData.event_id,
@@ -555,13 +576,23 @@ function WADcal1($shortcodeattributes) {
 			  
 
 		//initialize();
-				
+
 			 
 		});
+
+	setTimeout(function(){
+
+
+	},100);
+
+
+
 
 	<?php
 	global $current_user;
 	
+
+
 
 	if($current_user->ID == 0){
 		echo "jQuery('#eventName').editable('option', 'disabled', true);";
@@ -573,6 +604,11 @@ function WADcal1($shortcodeattributes) {
 		echo "jQuery('#eventLocationId').editable('option', 'disabled', true);";
 
 	}
+
+
+		
+
+
 
 	?>
 
@@ -790,6 +826,16 @@ function JKT_AJAX_query_handler() {
 							$value = stripcslashes($value);
 							if(!is_nan($value)){	
 								$wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_category_id`='$value' WHERE `event_id`=%d",$pk));
+							}
+						
+						break;
+
+					case 'eventLocationId':
+					
+							$value = trim($value);
+							$value = stripcslashes($value);
+							if(!is_nan($value)){	
+								$wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_location_id`='$value' WHERE `event_id`=%d",$pk));
 							}
 						
 						break;
