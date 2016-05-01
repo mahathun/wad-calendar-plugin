@@ -36,7 +36,7 @@ function jscal_activate() {
 	event_finish datetime NOT NULL,
 	event_recurring INT(4) NOT NULL,
 	event_category_id bigint(20) UNSIGNED NOT NULL,
-	event_location_id VARCHAR(255) NOT NULL,
+	event_location_id bigint(20) NOT NULL,
 	event_description TEXT,
 	event_organizer_id bigint(20) UNSIGNED NOT NULL,
 	PRIMARY KEY  (event_id)
@@ -93,7 +93,7 @@ function jscal_activate() {
 		event_finish datetime NOT NULL,		
 		event_recurring INT(4) NOT NULL,
 		event_category_id bigint(20) UNSIGNED NOT NULL,
-		event_location_id VARCHAR(255) NOT NULL,
+		event_location_id bigint(20) NOT NULL,
 		event_description TEXT,
 		event_organizer_id bigint(20) UNSIGNED NOT NULL,
 		PRIMARY KEY  (event_id)
