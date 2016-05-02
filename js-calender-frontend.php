@@ -650,7 +650,7 @@ function WADcal1($shortcodeattributes) {
 
 			//_event += singleLink;
 			
-		 _event = '<a data-toggle="modal" data-target="#eventDetails" href="#" onclick="loadEventData('+"event_"+originalEventData.event_id+')" class="list-group-item">'+originalEventData.event_name+'</a>'; 
+		 _event = '<a data-toggle="modal" data-target="#eventDetails" href="#" class="'+((originalEventData.event_status==0)?"":"active")+'"" onclick="loadEventData('+"event_"+originalEventData.event_id+')" class="list-group-item">'+originalEventData.event_name+'<span class="badge">'+((originalEventData.event_status==0)?"Draft":"Published")+'</span></a>'; 
 
 		 jQuery(jQuery(_event).addClass("list-group-item")).appendTo("#eventList");
 		 	//jQuery("#eventList").append("a").addClass("list-group-item");
