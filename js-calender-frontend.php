@@ -241,7 +241,7 @@ function WADcal1($shortcodeattributes) {
 		}
 		
 		//print the actual day (cell) with events
-		echo '<div data-date="'.($i+1).'">'; //add 1 to the for loop variable as it starts at zero not one
+		echo '<div id="dayCell" data-date="'.($i+1).'" data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
 
 
 
@@ -251,8 +251,8 @@ function WADcal1($shortcodeattributes) {
 			//pr($event["event_day"]);
 			if($event["event_day"] == ($i+1)){
 				//echo $event["event_name"];
-				echo '<div class="bootstrap-wrapper" style="margin:0px 0px 5px 0px"  data-toggle="modal" data-target="#eventDetails">
-					<a class="label '.(($event["event_status"]==1)?"label-info":"label-default").'" event-data=\''.json_encode($event).'\'" title="'.$event["event_description"].'" onclick="loadEventData(this)">'.$event["event_name"].'</a></div>';
+				echo '<div id="eventDetailsModel" class="bootstrap-wrapper" style="margin:0px 0px 5px 0px" >
+					<a id="event_'.$event["event_id"].'" data-toggle="modal" data-target="#eventDetails" class="label '.(($event["event_status"]==1)?"label-info":"label-default").'" event-data=\''.json_encode($event).'\'" title="'.$event["event_description"].'" onclick="loadEventData(event_'.$event["event_id"].')">'.$event["event_name"].'</a></div>';
 				
 			}
 		}
@@ -275,10 +275,17 @@ function WADcal1($shortcodeattributes) {
 	?>
 
 
-	<!-- initiating the bootstrap tooltip-->
+	
 	<script>
+		// initiating the bootstrap tooltip
 		jQuery(document).ready(function(){
 		    jQuery('[data-toggle="tooltip"]').tooltip(); 
+
+		//stop triggering the parent cell on click function when clicking on a event
+		jQuery("#dayCell a").click(function(e) {
+		        e.stopPropagation();
+		        jQuery('#eventDetails').modal('show');
+		   });
 		});
 
 
@@ -359,8 +366,13 @@ function WADcal1($shortcodeattributes) {
 
 	//loading event data into the model
 	function loadEventData(element){
+		// alert('test');
+		// var element = jQuery(ele)[0];
+		// alert('test');
+
+		console.log(element);
 		
-		//console.log(JSON.parse(jQuery(element).attr('event-data')));
+		console.log(JSON.parse(jQuery(element).attr('event-data')));
 		var eventData = JSON.parse(jQuery(element).attr('event-data'));
 
 		//eventID = eventData.event_id;
@@ -377,7 +389,7 @@ function WADcal1($shortcodeattributes) {
 		jQuery( document ).ready( function( $ ) 
 		{
 
-			console.log(eventData);
+			//console.log(eventData);
 			
 
 
@@ -618,8 +630,84 @@ function WADcal1($shortcodeattributes) {
 	}
 
 
+
+
+	//populating the event model
+	function populateEventModel(element){
+		var _event = "";
+		//console.log(jQuery(element).children());
+		var eventList = jQuery(element).children();
+
+		jQuery("#eventList").empty();// removing all the events drawn previously 
+
+		for(var i=0; i<eventList.length ; i++){
+			originalEvent = jQuery(eventList[i]).children()[0];
+			//console.log(originalEvent);
+			originalEventData = JSON.parse(jQuery(originalEvent).attr('event-data'));
+			//console.log(originalEventData);
+			//var eventData = JSON.parse(jQuery(singleLink).attr('event-data'));
+			
+
+			//_event += singleLink;
+			
+		 _event = '<a data-toggle="modal" data-target="#eventDetails" href="#" onclick="loadEventData('+"event_"+originalEventData.event_id+')" class="list-group-item">'+originalEventData.event_name+'</a>'; 
+
+		 jQuery(jQuery(_event).addClass("list-group-item")).appendTo("#eventList");
+		 	//jQuery("#eventList").append("a").addClass("list-group-item");
+
+
+		}
+
+
+		//console.log(jQuery("#eventList").append(_event));
+
+
+	}
+
+
 	</script>
-		<!-- Event Modal -->
+
+
+
+
+
+
+
+		<!-- Events  Modal -->
+		<div class="bootstrap-wrapper">
+		  <div class="modal fade" id="events" role="dialog" >
+		    <div class="modal-dialog" style="margin:15%">
+		    
+		      <!-- Modal content-->
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <button type="button" class="close" data-dismiss="modal">&times;</button>
+		          <h4 class="modal-title" id="allEventsModalTitle">Event List</h4>
+		        </div>
+		        <div class="modal-body">
+		        	<!-- list of events-->
+		        	<div id="eventList" class="list-group">
+
+		        		<a href="#" class="list-group-item">Dapibus ac facilisis in</a>
+		        		
+
+		        	</div>
+		        </div>
+		        <div class="modal-footer">
+		          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		        </div>
+		      </div>
+		      
+		    </div>
+		  </div>
+		</div>
+
+
+
+
+
+
+		<!-- Event details Modal -->
 		<div class="bootstrap-wrapper">
 		  <div class="modal fade" id="eventDetails" role="dialog" >
 		    <div class="modal-dialog" style="margin:15%">
@@ -706,6 +794,9 @@ function WADcal1($shortcodeattributes) {
 		    </div>
 		  </div>
 		</div>
+
+
+		
 
 <?php
 	
