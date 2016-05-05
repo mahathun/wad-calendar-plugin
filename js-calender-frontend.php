@@ -106,18 +106,18 @@ function get_events($year, $month)
                 //inserting daily recuring events to the array
                 case '1':
                     $startDate = new DateTime($event->event_start);
-                    $startDateTimestamp = $startDate->getTimestamp();
 
                     $finishDate = new DateTime($event->event_finish);
-                    $finishDateTimestamp = $finishDate->getTimestamp();
                     //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 day');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
 
                         //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
-                        $startDate->modify('+1 day');
-                        $startDateTimestamp = $startDate->getTimestamp();
+                       
 
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
@@ -127,24 +127,28 @@ function get_events($year, $month)
                             array_push($eventarray, $obj);
                         }
 
+                        $startDate->modify('+1 day');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
                     }
 
                     break;
 
-                //inserting monthly recuring events to the array
+                //inserting weekly recuring events to the array
                 case '2':
                     $startDate = new DateTime($event->event_start);
-                    $startDateTimestamp = $startDate->getTimestamp();
 
                     $finishDate = new DateTime($event->event_finish);
-                    $finishDateTimestamp = $finishDate->getTimestamp();
                     //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+7 day');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
 
-
-                        $startDate->modify('+7 day');
-                        $startDateTimestamp = $startDate->getTimestamp();
+                       
 
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
@@ -152,10 +156,16 @@ function get_events($year, $month)
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
+                        echo "<script>console.log(".$startDate->format("d").");</script>";
+                        echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
 
                         if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
                             array_push($eventarray, $obj);
                         }
+                        $startDate->modify('+7 day');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
 
                     }
 
@@ -176,7 +186,130 @@ function get_events($year, $month)
 //copy of the WADCal1 function redesigned as a dynamic call
 function WadCal1DynamicRedraw($shortcodeattributes){
 
+    $returnText = "";
+//echo pr($shortcodeattributes);
+    //days of the week used for headings. This particular method is not particulary multilanguage friendly.
+    $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+    extract(shortcode_atts(array('year' => '-', 'month' => '-'), $shortcodeattributes));
 
+    //default to the current month and year
+    if ($month == '-') $month = date('m');
+    if ($year == '-') $year = date('Y');
+
+    //get the previous month's days - used to fill in the blank days at the start.  
+    //make sure we roll over to december in the case of $month being January    
+    if ($month == 1) //January?
+        $prevmonth = 12; //December
+    else
+        $prevmonth = $month - 1;
+    //shortend, harder to read, version of the if ...else... above   
+
+    $prevmonth = ($month == 1) ? 12 : $month - 1;
+
+    $prevdays = date('t', mktime(0, 0, 1, $prevmonth, 1, $year));    //days in the previous month
+    //calculate a few date values for the current/selected month & year 
+    $dow = date('w', mktime(0, 0, 1, $month, 1, $year)); //day of the week
+    $days = date('t', mktime(0, 0, 1, $month, 1, $year));    //days in the month
+    $lastblankdays = 7 - (($dow + $days) % 7); //remaining days in the last week
+
+    $lastblankdays = ($lastblankdays == 7) ? 0 : $lastblankdays;
+
+    //calendar heading - note we are using flexbox for the styling
+    $thedate = date('F Y', mktime(0, 0, 1, $month, 1, $year));
+    $returnText.= '<main id="calendar">
+                            <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
+                                <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1)?12:$month-1).','.(($month==1)?$year-1:$year).')" >Prev Month</span>
+                                <span id="calendarHeaderText" data-month='.$month.' data-year='.$year.' style="text-align:center; font-size:2em">' . $thedate . '</span>
+                                <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12)?1:$month+1).','.(($month==12)?$year+1:$year).')" >Next Month</span>
+                            </div>
+                            
+
+                            <div class="th">';
+    //HEADING ROW: print out the week names
+    foreach ($weekdays as $wd) {
+        $returnText.= '<span>' . $wd . '</span>';
+    }
+    $returnText.= '</div>';
+
+    //CALENDAR WEEKS: generate the calendar body
+    //starting day of the previous month, used to fill the blank day slots
+
+    $startday = $prevdays - ($dow - 1); //calculate the number of days required from the prev month
+
+    //PART 1: first week with initial blank days (cells) or previous month
+    $returnText.= '<div class="week">';
+    for ($i = 0; $i < $dow; $i++)
+        //refer to lines 43-53 in the WADcalendar.css for information regarding the data-date styling
+        $returnText.= '<div data-date="' . $startday++ . '"></div>';//!! this increments $startday AFTER the value has been used
+
+
+    //getting the event list
+    $event_list = get_events($year, $month);
+
+
+    //pr($event_list);
+
+    //PART 2: main calendar calendar body
+    for ($i = 0; $i < $days; $i++) {
+
+        //check for the week boundary - % returns the remainder of a division
+        if (($i + $dow) % 7 == 0) { //no remainder means end of the week
+            $returnText.= '</div><div class="week">';
+        }
+
+        //print the actual day (cell) with events
+        $returnText.= '<div id="dayCell" data-date="' . ($i + 1) . '" data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
+
+
+        //event code and such here
+        foreach ($event_list as $event) {
+            //pr($event["event_day"]);
+            if ($event["event_day"] == ($i + 1)) {
+                //$returnText.= $event["event_name"];
+                $returnText.= '<div id="eventDetailsModel" class="bootstrap-wrapper" style="margin:0px 0px 5px 0px" >
+                    <a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a></div>';
+
+            }
+        }
+
+
+        $returnText.= '</div>';
+    }
+
+    //PART 3: last week with blank days (cells) or couple of days from next month
+    $j = 1; //counter for next months days used to fill in the blank days at the end
+    for ($i = 0; $i < $lastblankdays; $i++)
+        $returnText.= '<div data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
+    //close off the calendar    
+    $returnText.= '</div>';
+
+    $returnText.= '<script>// initiating the bootstrap tooltip
+        jQuery(document).ready(function () {
+            
+
+            //stop triggering the parent cell on click function when clicking on a event
+            jQuery("#dayCell a").click(function (e) {
+                e.stopPropagation();
+                jQuery("#eventDetails").modal("show");
+            });
+        });';
+
+        //destroying already created elements
+        global $current_user;
+        if ($current_user->ID == 0) {
+            $returnText.= "jQuery('#eventName').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventStatus').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventType').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventStartDate').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventFinishDate').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventCategoryId').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventLocationId').editable('option', 'disabled', true);";
+        }
+
+        $returnText.="</script>";
+    
+    return $returnText;
+exit;
 }
 
 function WADcal1($shortcodeattributes)
@@ -211,12 +344,12 @@ function WADcal1($shortcodeattributes)
     //calendar heading - note we are using flexbox for the styling
     $thedate = date('F Y', mktime(0, 0, 1, $month, 1, $year));
     echo '<main id="calendar">
-                            <div style="text-align:center;padding-bottom:1em;">
-                                <h4>' . $thedate . '</h4>
+                            <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
+                                <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1)?12:$month-1).','.(($month==1)?$year-1:$year).')" >Prev Month</span>
+                                <span id="calendarHeaderText" data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
+                                <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12)?1:$month+1).','.(($month==12)?$year+1:$year).')" >Next Month</span>
                             </div>
-                            <div class="bootstrap-wrapper">
-                                <a href="#" class="btn btn-primary" onclick="redrawCalander()" >next month</a>
-                            </div>
+                            
 
                             <div class="th">';
     //HEADING ROW: print out the week names	
@@ -326,13 +459,17 @@ function WADcal1($shortcodeattributes)
 
     
         //redrawing the calender
-        function redrawCalander(elm){
+        function redrawCalander(month,year){
         
             jQuery.ajax({
-                        url: "?redrawWADCalander=true&month=8&year=2016",
+                        url: "?redrawWADCalander=true&month="+month+"&year="+year,
                         success: function (data) {
-                            alert("redraw success");
-                            console.log(data);
+                           // alert("redraw success");
+                           //jQuery("#calendar").fadeOut("normal");
+                           jQuery("#calendar").empty();
+                            
+                            jQuery("#calendar").html(data);
+                            //console.log(data);
                             
                         }
                     });
@@ -469,6 +606,8 @@ function WADcal1($shortcodeattributes)
                         //changing  clander data to new values
                         eventData.event_type = newValue;
                         $(element).attr('event-data', JSON.stringify(eventData));
+                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+
 
                     }
                 });
@@ -487,6 +626,8 @@ function WADcal1($shortcodeattributes)
                     success: function (response, newValue) {
                         eventData.event_start = newValue;
                         $(element).attr('event-data', JSON.stringify(eventData));
+                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+
                     }
                 });
 
@@ -503,6 +644,8 @@ function WADcal1($shortcodeattributes)
                     success: function (response, newValue) {
                         eventData.event_finish = newValue;
                         $(element).attr('event-data', JSON.stringify(eventData));
+                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+                        
                     }
                 });
 
@@ -740,7 +883,7 @@ function WADcal1($shortcodeattributes)
 
 
                                             <div class="form-group">
-                                                <lable>ddd</label>
+
                                                 <div class="col-md-6">
                                                     <input type="text" id="add-new-start-Date">
 
@@ -889,13 +1032,24 @@ function JKT_AJAX_query_handler()
         $pk = $_REQUEST['pk'];
         $action = $_GET['action'];
 
-    if(isset($_REQUEST['edrawWADCalander']) && !empty($_REQUEST['edrawWADCalander'])){
-        $month = "8";
-        $year =  "2016";
-        $param = array("month"=> $month, "year" => $year);
-        $result = WADcal1($param);
+    if(isset($_REQUEST['redrawWADCalander']) && !empty($_REQUEST['redrawWADCalander'])){
+        $month = $_REQUEST['month'];
+        $year =  $_REQUEST['year'];
+        if(isset($_REQUEST['month']) || isset($_REQUEST['year']) ){
+            $month = $_REQUEST['month'];
+            $year =  $_REQUEST['year'];
+            $param = array("month"=> $month, "year" => $year);
+            $result = WadCal1DynamicRedraw($param);
+            echo $result;
+        }else{
+            $result = WadCal1DynamicRedraw();
+            echo $result;
+        }
+        
 
-        return $result;
+       // echo "test";
+        //http_response_code(400);
+        
         exit;
     }
 
