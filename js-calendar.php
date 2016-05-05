@@ -36,9 +36,10 @@ function jscal_activate() {
 	event_finish datetime NOT NULL,
 	event_recurring INT(4) NOT NULL,
 	event_category_id bigint(20) UNSIGNED NOT NULL,
-	event_location_id bigint(20) NOT NULL,
+	event_location_id VARCHAR(255) NOT NULL,
 	event_description TEXT,
 	event_organizer_id bigint(20) UNSIGNED NOT NULL,
+	event_status tinyint(4) UNSIGNED NOT NULL,
 	PRIMARY KEY  (event_id)
 	) $charset_collate;";
 
@@ -66,6 +67,7 @@ function jscal_activate() {
 	message_date DATETIME NOT NULL,
 	message_content text NOT NULL,
 	message_author bigint(20) UNSIGNED NOT NULL,
+	event_id tinyint(4) UNSIGNED NOT NULL,
 	PRIMARY KEY  (message_id)
 	) $charset_collate;";
 	
@@ -96,6 +98,7 @@ function jscal_activate() {
 		event_location_id bigint(20) NOT NULL,
 		event_description TEXT,
 		event_organizer_id bigint(20) UNSIGNED NOT NULL,
+		event_status tinyint(4) UNSIGNED NOT NULL,
 		PRIMARY KEY  (event_id)
 		) $charset_collate;";
 
@@ -123,6 +126,7 @@ function jscal_activate() {
 		message_date DATETIME NOT NULL,
 		message_content text NOT NULL,
 		message_author bigint(20) UNSIGNED NOT NULL,
+		event_id tinyint(4) UNSIGNED NOT NULL,
 		PRIMARY KEY  (message_id)
 		) $charset_collate;";
 
@@ -142,12 +146,11 @@ function jscal_deactivate() {
 add_action('admin_menu', 'jscal_admin_menus');
 
 function jscal_admin_menus() {
-	add_menu_page('Calendar', 'Calendar', 'read', 'calendar', 'js_cal', '');
-	add_submenu_page('calendar', 'Manage Events', 'Manage Events', 'manage_options', 'manage_events', 'jscal_manage_events');
-	add_submenu_page('calendar', 'Add Event', 'Add Event', 'manage_options', 'add_event', 'jscal_add_event');
-	add_submenu_page('calendar', 'Manage Venues', 'Manage Venues', 'manage_options', 'manage_venues', 'jscal_manage_venues');
-	add_submenu_page('calendar', 'Manage Categories', 'Manage Categories', 'manage_options', 'manage_categories', 'jscal_manage_categories');
+	add_menu_page('Manage Events', 'Events', 'read', 'manage_events', 'jscal_manage_events', '');
+	add_submenu_page('manage_events', 'Manage Venues', 'Venues', 'read', 'manage_venues', 'jscal_manage_venues');
+	add_submenu_page('manage_events', 'Manage Categories', 'Categories', 'read', 'manage_categories', 'jscal_manage_categories');
 }
+
 
 include('js-backend.php');
 include('js-calender-frontend.php');
