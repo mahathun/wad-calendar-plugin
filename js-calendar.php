@@ -27,6 +27,7 @@ function jscal_activate() {
 	$table_venues = $wpdb->prefix . 'js_venues';
 	$table_categories = $wpdb->prefix . 'js_categories';
 	$table_messages = $wpdb->prefix . 'js_messages';
+	$table_users = $wpdb->prefix . 'js_users'; // Dan
 	
 	// Create events table
 	$sql = "CREATE TABLE $table_events (
@@ -70,6 +71,15 @@ function jscal_activate() {
 	event_id tinyint(4) UNSIGNED NOT NULL,
 	PRIMARY KEY  (message_id)
 	) $charset_collate;";
+
+	//Dan - start
+	// Creates users table
+	$sql .= "CREATE TABLE $table_users (
+	user_id bigint(20) UNSIGNED AUTO_INCREMENT NOT NULL,
+	default_view tinyint(4) UNSIGNED NOT NULL,
+	PRIMARY KEY  (user_id)
+	) $charset_collate;";
+	//Dan - end
 	
 	// Using dbDelta, run the SQL code
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -86,6 +96,7 @@ function jscal_activate() {
 		$table_venues = $wpdb->prefix . '_venues';
 		$table_categories = $wpdb->prefix . 'js_categories';
 		$table_messages = $wpdb->prefix . 'js_messages';
+		$table_users = $wpdb->prefix . 'js_users'; // Dan
 	
 		// Create events table
 		$sql = "CREATE TABLE $table_events (
@@ -130,6 +141,15 @@ function jscal_activate() {
 		PRIMARY KEY  (message_id)
 		) $charset_collate;";
 
+		//Dan - strat
+		// Creates users table
+			$sql .= "CREATE TABLE $table_users (
+			user_id bigint(20) UNSIGNED AUTO_INCREMENT NOT NULL,
+			default_view tinyint(4) UNSIGNED NOT NULL,
+			PRIMARY KEY  (user_id)
+			) $charset_collate;";
+		//Dan - end
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 
@@ -149,6 +169,7 @@ function jscal_admin_menus() {
 	add_menu_page('Manage Events', 'Events', 'read', 'manage_events', 'jscal_manage_events', '');
 	add_submenu_page('manage_events', 'Manage Venues', 'Venues', 'read', 'manage_venues', 'jscal_manage_venues');
 	add_submenu_page('manage_events', 'Manage Categories', 'Categories', 'read', 'manage_categories', 'jscal_manage_categories');
+	add_submenu_page('manage_events', 'Settings', 'Settings', 'read', 'manage_settings', 'jscal_manage_settings');// Dan
 }
 
 

@@ -51,9 +51,19 @@ function WAD_2016_scripts()
     wp_enqueue_script('x-editable-datetimepicker-js', plugins_url('js/datetimepicker-bootstrap.js', __FILE__));
 
 
+    // datetime picker
+    // wp_enqueue_style('newEvent-datetimepicker-css', plugins_url('css/bootstrap-datepicker3.css', __FILE__));
+    // wp_enqueue_script('newEvent-datetimepicker-js', plugins_url('js/bootstrap-datepicker.js', __FILE__));
+    wp_enqueue_script('jquery-ui-datepicker');
+    wp_enqueue_style('jquery-style', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+
+
     // google map API
    // wp_enqueue_script('google-map-api', plugins_url('js/google-map-api.js', __FILE__));
     wp_enqueue_script('google-map-api', '//maps.googleapis.com/maps/api/js?&key=AIzaSyDzzaqaN5nAyGCp1gRIsleOJRUeioD-urs', array(), '3', true);
+
+    //form validation
+    wp_enqueue_script( 'jquery_validate',plugins_url('js/jquery.validate.js',__FILE__) );
 }
 
 
@@ -156,8 +166,8 @@ function get_events($year, $month)
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
-                        echo "<script>console.log(".$startDate->format("d").");</script>";
-                        echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
 
                         if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
                             array_push($eventarray, $obj);
@@ -189,53 +199,184 @@ function WadCal1DynamicRedraw($shortcodeattributes){
     $returnText = "";
 
     $returnText.= '<div id="contentWrapper"><!-- start of contentWrapper-->
-        <script>
-        // initiating the bootstrap tooltip
-        jQuery(document).ready(function () {
-            jQuery(\'[data-toggle="tooltip"]\').tooltip();
+                    <script>
+                    // initiating the bootstrap tooltip
+                    jQuery(document).ready(function () {
+                        jQuery(\'[data-toggle="tooltip"]\').tooltip();
 
-            //stop triggering the parent cell on click function when clicking on a event
-            jQuery("#dayCell a").click(function (e) {
-                e.stopPropagation();
-                jQuery(\'#eventDetails\').modal(\'show\');
-            });
-        });
+                        //stop triggering the parent cell on click function when clicking on a event
+                        jQuery("#dayCell a").click(function (e) {
+                            e.stopPropagation();
+                            jQuery(\'#eventDetails\').modal(\'show\');
+                        });
+
+                    
+                        //validation settings for the add new event form
+                        jQuery("#add-new-event-form").validate({
+                            rules: {
+                                txtEventName: {           
+                                    required: true,   
+                                         
+                                },
+                                txtAddNewStartDate:{
+                                    required:true,
+                                },
+                                txtAddNewFinishDate:{
+                                    required:true,
+                                },
+                                cmbEventCategory:{
+                                    required:true,
+                                },
+                                cmbEventLocation:{
+                                    required:true,
+                                },
+                            },
+                            messages: {               
+                                txtEventName: {
+                                      required:" <span class=\"label label-danger\">Required</span>",
+                                      
+                                      },               
+                                txtAddNewStartDate: {
+                                        required: "<span class=\"label label-danger\">Required</scpan>",
+                                        },
+                                txtAddNewFinishDate: {
+                                        required: "<span class=\"label label-danger\">Required</scpan>",
+                                        },
+                                cmbEventCategory: {
+                                        required: "<span class=\"label label-danger\">Required</scpan>",
+                                        },
+                                cmbEventLocation: {
+                                        required: "<span class=\"label label-danger\">Required</scpan>",
+                                        },
+                            },
+                            submitHandler: function(form) {
+                                               // form.submit();
+
+                                                var d = {
+                                                    eventName : jQuery("#txtEventName").val(),
+                                                    eventDescription : jQuery("#textareaDescription").val(),
+                                                    eventStatus : jQuery("#cmbEventStatus").val(),
+                                                    eventRecurrenceFrequency : jQuery("#cmbEventRecurrence").val(),
+                                                    eventStartDate : jQuery("#add-new-start-Date").val(),
+                                                    eventFinishDate : jQuery("#add-new-finish-Date").val(),
+                                                    eventCategoryId : jQuery("#cmbEventCategory").val(),
+                                                    eventLocationId : jQuery("#cmbEventLocation").val(),
+
+                                                
+                                                };
+                                                jQuery("#btnAddNewEvent").attr("disabled",true);
 
 
-        //turn to inline mode for the x-editable
-        jQuery(document).ready(function ($) {
-            $.fn.editable.defaults.mode = \'popover\';
-            $.fn.editable.defaults.placement = \'bottom\';
+
+                                                jQuery.ajax({
+                                                  type: "POST",
+                                                  url: "?eventNew=true",
+                                                  data: d,
+                                                  success: function(response){
+                                                    jQuery("#btnAddNewEvent").attr("disabled",false);
+                                                    jQuery("#responseMsg").empty();
+                                                    jQuery("#responseMsg").append("<div class=\"alert alert-success alert-dismissible\" role=\"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><strong>Success!</strong> "+response+"</div>");
 
 
-            //destroying all the input fields on closing the dialog.
-            $(\'#eventDetails\').on(\'hidden.bs.modal\', function () {
+                                                    jQuery("#events").animate({
+                                                                        scrollTop: jQuery("#responseMsg").offset().top
+                                                                    }, 1000);
+
+                                                    redrawCalander(jQuery("#calendarHeaderText").data("month"),jQuery("#calendarHeaderText").data("year"))
+                                                   
+
+                                                  },
+                                                  error:function(response){
+                                                    jQuery("#responseMsg").empty();
+                                                    jQuery("#responseMsg").append("<div class=\"alert alert-danger alert-dismissible\" role=\"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><strong>Error!</strong> "+response.responseText+"</div>");
 
 
-                $(\'#eventName\').editable("destroy");//destroying the already created fields
-                $(\'#eventStatus\').editable("destroy");//destroying the already created fields
-                $(\'#eventType\').editable("destroy");//destroying the already created fields
-                $(\'#eventStartDate\').editable("destroy");//destroying the already created fields
-                //$(\'#eventStartDate\').text(eventData.event_start);//loading the start date of the selected event
+                                                    jQuery("#events").animate({
+                                                                        scrollTop: jQuery("#responseMsg").offset().top
+                                                                    }, 1000);
 
-                $(\'#eventFinishDate\').editable("destroy");//destroying the already created fields
-                //$(\'#eventFinishDate\').text(eventData.event_finish);//loading the finish date of the selected event
+                                                    jQuery("#btnAddNewEvent").attr("disabled",false);
+                                                    
+                                                  },
+                                                  
+                                                });
+                                        
+                                        }
 
-                $(\'#eventCategoryId\').editable("destroy");//destroying the already created fields
-                $(\'#eventCategoryId\').text("");//loading the finish date of the selected event
-
-                $(\'#eventLocationId\').editable("destroy");//destroying the already created fields
-                $(\'#eventLocationId\').text("");//loading the finish date of the selected event
-
-
-            })
+                        });  
 
 
-        });';
+                        //loading the google map onto the div on change
+                        jQuery(document).on("change", "#cmbEventLocation", function() {
+                            console.log(jQuery(this).val()); // the selected options"s value
+                            var newValue = jQuery(this).val();
+
+                            jQuery.ajax({
+                                url: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationNames&pk=1",
+                                success: function (data) {
+                                    var sourceObj = JSON.parse(data);
+                                    for (var i = sourceObj.length - 1; i >= 0; i--) {
+
+                                        if (sourceObj[i].value == newValue) {
+                                            console.log(sourceObj[i].text);
+                                            initialize(sourceObj[i].text,true);
+
+                                        }
+                                    }
+                                    ;
+
+
+                                }
+                            });
+
+                            // if you want to do stuff based on the OPTION element:
+                            //var opt = $(this).find("option:selected")[0];
+                            // use switch or if/else etc.
+                        });
+
+
+
+
+                    
+                       
+                        
+                    });
+
+
+                    //turn to inline mode for the x-editable
+                    jQuery(document).ready(function ($) {
+                        $.fn.editable.defaults.mode = \'popover\';
+                        $.fn.editable.defaults.placement = \'bottom\';
+
+
+                        //destroying all the input fields on closing the dialog.
+                        $(\'#eventDetails\').on(\'hidden.bs.modal\', function () {
+
+
+                            $(\'#eventName\').editable("destroy");//destroying the already created fields
+                            $(\'#eventStatus\').editable("destroy");//destroying the already created fields
+                            $(\'#eventType\').editable("destroy");//destroying the already created fields
+                            $(\'#eventStartDate\').editable("destroy");//destroying the already created fields
+                            //$(\'#eventStartDate\').text(eventData.event_start);//loading the start date of the selected event
+
+                            $(\'#eventFinishDate\').editable("destroy");//destroying the already created fields
+                            //$(\'#eventFinishDate\').text(eventData.event_finish);//loading the finish date of the selected event
+
+                            $(\'#eventCategoryId\').editable("destroy");//destroying the already created fields
+                            $(\'#eventCategoryId\').text("");//loading the finish date of the selected event
+
+                            $(\'#eventLocationId\').editable("destroy");//destroying the already created fields
+                            $(\'#eventLocationId\').text("");//loading the finish date of the selected event
+
+
+                        })
+
+
+                    });';
 
 
         //destroying already created elements
-        global $current_user;
+        global $current_user,$wpdb;
         if ($current_user->ID == 0) {
             $returnText.= "jQuery('#eventName').editable('option', 'disabled', true);";
             $returnText.= "jQuery('#eventStatus').editable('option', 'disabled', true);";
@@ -267,574 +408,752 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         $returnText.="</script>";
 
         $returnText .= '<script>
+
+
+
+
+
     
-        //redrawing the calender
-        function redrawCalander(month,year,week){
-            //alert(week);
-            if(week==undefined){// if default view is month
-               // console.log(\'not set\');
-                //alert(\'not set\');
+                        //redrawing the calender
+                        function redrawCalander(month,year,week){
+                            //alert(week);
+                            if(week==undefined){// if default view is month
+                               // console.log(\'not set\');
+                                //alert(\'not set\');
 
 
-                jQuery.ajax({
-                        url: "?redrawWADCalander=true&month="+month+"&year="+year,
-                        success: function (data) {
-                           // alert("redraw success");
-                           //jQuery("#calendar").fadeOut("normal");
-                           jQuery("#calendar").empty();
+                                jQuery.ajax({
+                                        url: "?redrawWADCalander=true&month="+month+"&year="+year,
+                                        success: function (data) {
+                                           // alert("redraw success");
+                                           //jQuery("#calendar").fadeOut("normal");
+                                           jQuery("#calendar").empty();
+                                            
+                                            jQuery("#calendar").html(data);
+                                            //console.log(data);
+                                            
+                                        }
+                                    });
+                            }else{//if deafult view is week
+                                console.log(\'set\');
+
+                               
+
+                                jQuery.ajax({
+                                        url: "?redrawWADCalander=true&month="+month+"&year="+year+"&week="+week,
+                                        success: function (data) {
+                                           // alert("redraw success");
+                                           //jQuery("#calendar").fadeOut("normal");
+                                           jQuery("#calendar").empty();
+                                            
+                                            jQuery("#calendar").html(data);
+                                            //console.log(data);
+                                            
+                                        }
+                                    });
+
+                            }
+                        
                             
-                            jQuery("#calendar").html(data);
-                            //console.log(data);
-                            
-                        }
-                    });
-            }else{//if deafult view is week
-                console.log(\'set\');
-
-               
-
-                jQuery.ajax({
-                        url: "?redrawWADCalander=true&month="+month+"&year="+year+"&week="+week,
-                        success: function (data) {
-                           // alert("redraw success");
-                           //jQuery("#calendar").fadeOut("normal");
-                           jQuery("#calendar").empty();
-                            
-                            jQuery("#calendar").html(data);
-                            //console.log(data);
-                            
-                        }
-                    });
-
-            }
-        
-            
-        }
-
-
-
-
-        // initializing the google map
-        function initialize(add) {
-
-            var myCenter = new google.maps.LatLng(51.508742, -0.120850);
-            var mapProp = {
-                center: myCenter,
-                zoom: 10,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-            };
-            var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
-            var marker = new google.maps.Marker({
-                position: myCenter,
-                animation: google.maps.Animation.BOUNCE
-            });
-            var geocoder = new google.maps.Geocoder();
-            geocodeAddress(geocoder, map, add);
-
-            marker.setMap(map);
-
-        }
-
-        //converting the address to longitudes and latitudes
-        function geocodeAddress(geocoder, resultsMap, add) {
-            var address = add;
-            console.log(address);
-            geocoder.geocode({\'address\': address}, function (results, status) {
-                if (status === google.maps.GeocoderStatus.OK) {
-                    resultsMap.setCenter(results[0].geometry.location);
-                    var marker = new google.maps.Marker({
-                        map: resultsMap,
-                        position: results[0].geometry.location
-                    });
-                } else {
-                    alert(\'Geocode was not successful for the following reason: \' + status);
-                }
-            });
-        }
-
-
-        //loading event data into the model
-        function loadEventData(element) {
-            // alert(\'test\');
-            // var element = jQuery(ele)[0];
-            // alert(\'test\');
-
-            
-            var eventData = JSON.parse(jQuery(element).attr(\'event-data\'));
-
-            //eventID = eventData.event_id;
-
-            jQuery(\'#eventModalTitle\').text(eventData.event_name);
-
-            jQuery(\'#eventName\').text(eventData.event_name);
-            jQuery(\'#eventStatus\').text((eventData.event_status == 0) ? "Draft" : "Published");
-            jQuery(\'#eventType\').text((eventData.event_type == 0) ? "Non-Recurring" : (eventData.event_type == 1) ? "Daily" : (eventData.event_type == 2) ? "Weekly" : "Monthly");
-
-            jQuery(\'#eventStartDate\').text(eventData.event_start);
-            jQuery(\'#eventFinishDate\').text(eventData.event_finish);//setting default value when opening the modal
-
-            jQuery(document).ready(function ($) {
-
-                //console.log(eventData);
-
-
-                //initializing form elements
-
-                $(\'#eventName\').editable({
-                    type: \'text\',
-                    pk: eventData.event_id,
-                    url: \'?eventEdit=true\',
-                    title: \'Enter eventName\',
-
-
-                    success: function (response, newValue) {
-                        eventData.event_name = newValue;
-                        //changing  clander data to new values
-                        eventData.event_name = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-                        $(element).text(newValue);
-                        $(\'#eventModalTitle\').text(newValue);
-
-                    }
-                });
-
-
-                $(\'#eventStatus\').editable({
-                    type: \'select\',
-                    pk: eventData.event_id,
-                    url: \'?eventEdit=true\',
-                    title: \'Event Status\',
-                    source: [{value: 0, text: \'Draft\'}, {value: 1, text: \'Published\'}],
-                    emptytext: \'Draft\',
-                    value: eventData.event_status,
-
-                    success: function (response, newValue) {
-
-                        //changing  clander data to new values
-                        eventData.event_status = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-
-                        if (newValue == 0) {
-                            $(element).removeClass(\'label-info\');
-                            $(element).addClass(\'label-default\');
-
-                        } else {
-                            $(element).removeClass(\'label-default\');
-                            $(element).addClass(\'label-info\');
                         }
 
 
-                    }
-                });
 
 
-                $(\'#eventType\').editable({
-                    type: \'select\',
-                    pk: eventData.event_id,
-                    url: \'?eventEdit=true\',
-                    title: \'Event Status\',
-                    source: [{value: 0, text: \'Non-Recurring\'}, {value: 1, text: \'Daily\'}, {value: 2, text: \'Weekly\'}, {value: 3, text: \'Monthly\'}, {value: 4, text: \'Yearly\'}],
-                    emptytext: \'Draft\',
-                    value: eventData.event_type,
+                        // initializing the google map
+                        function initialize(add,newEvent) {
 
-                    success: function (response, newValue) {
+                           
+                            var myCenter = new google.maps.LatLng(51.508742, -0.120850);
+                            var mapProp = {
+                                center: myCenter,
+                                zoom: 10,
+                                mapTypeId: google.maps.MapTypeId.ROADMAP
+                            };
 
-                        //changing  clander data to new values
-                        eventData.event_type = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+                            if(newEvent!=undefined && newEvent==true){
+                                var map = new google.maps.Map(document.getElementById("googleMap2"), mapProp);
+                            }else{
+                                var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+                            }
+                           
+                            var marker = new google.maps.Marker({
+                                position: myCenter,
+                                animation: google.maps.Animation.BOUNCE
+                            });
+                            var geocoder = new google.maps.Geocoder();
+                            geocodeAddress(geocoder, map, add);
 
+                            marker.setMap(map);
 
-                    }
-                });
+                        }
 
-
-                $("#eventStartDate").editable({
-
-                    type: "datetime",
-                    pk: eventData.event_id,
-                    url: \'?eventEdit=true\',
-                    format: "yyyy-mm-dd hh:ii:ss",
-                    // viewformat: "dd/mm/yyyy hh:ii",
-                    value: eventData.event_start,
-                    datetimepicker: {
-                        weekStart: 1
-                    },
-                    success: function (response, newValue) {
-                        eventData.event_start = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
-
-                    }
-                });
-
-                $("#eventFinishDate").editable({
-                    type: "datetime",
-                    pk: eventData.event_id,
-                    url: \'?eventEdit=true\',
-                    format: "yyyy-mm-dd hh:ii:ss",
-                    // viewformat: "dd/mm/yyyy hh:ii",
-                    value: eventData.event_finish,
-                    datetimepicker: {
-                        weekStart: 1
-                    },
-                    success: function (response, newValue) {
-                        eventData.event_finish = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
-
-                    }
-                });
-
-                $("#eventCategoryId").editable({
-                    type: "select",
-                    pk: eventData.event_id,
-                    source: "?eventEdit=true&eventGetData=true&action=getCategoryList",
-                    url: \'?eventEdit=true\',
-                    sourceCache: false,
-                    value: eventData.event_category_id,
-                    success: function (response, newValue) {
-                        eventData.event_category_id = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
-                    }
-                    // viewformat: "dd/mm/yyyy hh:ii",
-                    //value:eventData.event_finish,
+                        //converting the address to longitudes and latitudes
+                        function geocodeAddress(geocoder, resultsMap, add) {
+                            var address = add;
+                            console.log(address);
+                            geocoder.geocode({\'address\': address}, function (results, status) {
+                                if (status === google.maps.GeocoderStatus.OK) {
+                                    resultsMap.setCenter(results[0].geometry.location);
+                                    var marker = new google.maps.Marker({
+                                        map: resultsMap,
+                                        position: results[0].geometry.location
+                                    });
+                                } else {
+                                    alert(\'Geocode was not successful for the following reason: \' + status);
+                                }
+                            });
+                        }
 
 
-                });
+                        //loading event data into the model
+                        function loadEventData(element) {
+                            // alert(\'test\');
+                            // var element = jQuery(ele)[0];
+                            // alert(\'test\');
 
-                $("#eventLocationId").editable({
-                    type: "select",
-                    pk: eventData.event_id,
-                    source: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationList",
-                    url: \'?eventEdit=true\',
-                    sourceCache: false,
-                    value: eventData.event_location_id,
-                    success: function (response, newValue) {
-                        eventData.event_location_id = newValue;
-                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                            
+                            var eventData = JSON.parse(jQuery(element).attr(\'event-data\'));
 
-                        $.ajax({
-                            url: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationNames&pk=1",
-                            success: function (data) {
-                                var sourceObj = JSON.parse(data);
-                                for (var i = sourceObj.length - 1; i >= 0; i--) {
+                            //eventID = eventData.event_id;
 
-                                    if (sourceObj[i].value == newValue) {
+                            jQuery(\'#eventModalTitle\').text(eventData.event_name);
 
-                                        initialize(sourceObj[i].text);
+                            jQuery(\'#eventName\').text(eventData.event_name);
+                            jQuery(\'#eventStatus\').text((eventData.event_status == 0) ? "Draft" : "Published");
+                            jQuery(\'#eventType\').text((eventData.event_type == 0) ? "Non-Recurring" : (eventData.event_type == 1) ? "Daily" : (eventData.event_type == 2) ? "Weekly" : "Monthly");
+
+                            jQuery(\'#eventStartDate\').text(eventData.event_start);
+                            jQuery(\'#eventFinishDate\').text(eventData.event_finish);//setting default value when opening the modal
+
+                            jQuery(document).ready(function ($) {
+
+                                //console.log(eventData);
+
+
+                                //initializing view event form elements
+
+                                $(\'#eventName\').editable({
+                                    type: \'text\',
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    title: \'Enter eventName\',
+
+
+                                    success: function (response, newValue) {
+                                        eventData.event_name = newValue;
+                                        //changing  clander data to new values
+                                        eventData.event_name = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                        $(element).text(newValue);
+                                        $(\'#eventModalTitle\').text(newValue);
 
                                     }
-                                }
-                                ;
+                                });
 
+
+                                $(\'#eventStatus\').editable({
+                                    type: \'select\',
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    title: \'Event Status\',
+                                    source: [{value: 0, text: \'Draft\'}, {value: 1, text: \'Published\'}],
+                                    emptytext: \'Draft\',
+                                    value: eventData.event_status,
+
+                                    success: function (response, newValue) {
+
+                                        //changing  clander data to new values
+                                        eventData.event_status = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+
+                                        if (newValue == 0) {
+                                            $(element).removeClass(\'label-info\');
+                                            $(element).addClass(\'label-default\');
+
+                                        } else {
+                                            $(element).removeClass(\'label-default\');
+                                            $(element).addClass(\'label-info\');
+                                        }
+
+
+                                    }
+                                });
+
+
+                                $(\'#eventType\').editable({
+                                    type: \'select\',
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    title: \'Event Status\',
+                                    source: [{value: 0, text: \'Non-Recurring\'}, {value: 1, text: \'Daily\'}, {value: 2, text: \'Weekly\'}, {value: 3, text: \'Monthly\'}, {value: 4, text: \'Yearly\'}],
+                                    emptytext: \'Draft\',
+                                    value: eventData.event_type,
+
+                                    success: function (response, newValue) {
+
+                                        //changing  clander data to new values
+                                        eventData.event_type = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+
+
+                                    }
+                                });
+
+
+                                $("#eventStartDate").editable({
+
+                                    type: "datetime",
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    format: "yyyy-mm-dd hh:ii:ss",
+                                    // viewformat: "dd/mm/yyyy hh:ii",
+                                    value: eventData.event_start,
+                                    datetimepicker: {
+                                        weekStart: 1
+                                    },
+                                    success: function (response, newValue) {
+                                        eventData.event_start = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+
+                                    }
+                                });
+
+                                $("#eventFinishDate").editable({
+                                    type: "datetime",
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    format: "yyyy-mm-dd hh:ii:ss",
+                                    // viewformat: "dd/mm/yyyy hh:ii",
+                                    value: eventData.event_finish,
+                                    datetimepicker: {
+                                        weekStart: 1
+                                    },
+                                    success: function (response, newValue) {
+                                        eventData.event_finish = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                        redrawCalander($("#calendarHeaderText").data("month"),$("#calendarHeaderText").data("year"));
+
+                                    }
+                                });
+
+                                $("#eventCategoryId").editable({
+                                    type: "select",
+                                    pk: eventData.event_id,
+                                    source: "?eventEdit=true&eventGetData=true&action=getCategoryList",
+                                    url: \'?eventEdit=true\',
+                                    sourceCache: false,
+                                    value: eventData.event_category_id,
+                                    success: function (response, newValue) {
+                                        eventData.event_category_id = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                    }
+                                    // viewformat: "dd/mm/yyyy hh:ii",
+                                    //value:eventData.event_finish,
+
+
+                                });
+
+                                $("#eventLocationId").editable({
+                                    type: "select",
+                                    pk: eventData.event_id,
+                                    source: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationList",
+                                    url: \'?eventEdit=true\',
+                                    sourceCache: false,
+                                    value: eventData.event_location_id,
+                                    success: function (response, newValue) {
+                                        eventData.event_location_id = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+
+                                        $.ajax({
+                                            url: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationNames&pk=1",
+                                            success: function (data) {
+                                                var sourceObj = JSON.parse(data);
+                                                for (var i = sourceObj.length - 1; i >= 0; i--) {
+
+                                                    if (sourceObj[i].value == newValue) {
+
+                                                        initialize(sourceObj[i].text);
+
+                                                    }
+                                                }
+                                                ;
+
+
+                                            }
+                                        });
+                                    }
+
+                                });
+
+
+                                setTimeout(function () {
+                                    $.ajax({
+                                        url: "?eventEdit=true&eventGetData=true&action=getLocationNames&pk=1",
+                                        success: function (data) {
+                                            var sourceObj = JSON.parse(data);
+                                            for (var i = sourceObj.length - 1; i >= 0; i--) {
+
+                                                if (sourceObj[i].value == eventData.event_location_id) {
+
+                                                    initialize(sourceObj[i].text);
+
+                                                }
+                                            }
+                                            ;
+
+
+                                        }
+                                    });
+                                }, 50);
+                                
+
+
+                              
+                                
+
+
+                            });';    
+
+        $returnText .=  '
+                    }
+
+
+                    //populating the event model
+                    function populateEventModel(element) {
+
+
+                         
+                       
+
+                        //initializing elemnts in "Add New tab"
+
+                        jQuery("#add-new-start-Date").datepicker({
+                                                            changeMonth: true,
+                                                            changeYear: true,
+                                                            dateFormat: "DD, d MM, yy",
+                                                            minDate: 0,
+                                                            
+                                                            onSelect: function(selected) {
+                                                                jQuery("#add-new-finish-Date").datepicker("option","minDate", selected)
+                                                            }
+                                                        });
+                        jQuery("#add-new-finish-Date").datepicker({
+                                                            changeMonth: true,
+                                                            changeYear: true,
+                                                            dateFormat: "DD, d MM, yy",
+                                                            minDate: 0,
+                                                            
+                                                            onSelect: function(selected) {
+                                                                jQuery("#add-new-start-Date").datepicker("option","maxDate", selected)
+                                                            }
+                                                        });
+
+                        
+
+
+                        //resetting(emptying) the fields
+                        jQuery("#txtEventName").val("");
+                        jQuery("#responseMsg").empty();
+
+
+
+
+                        //resetting the validation
+                        jQuery("#add-new-event-form").validate().resetForm();
+
+
+                        //populating combo boxes
+                        populateComboBox(jQuery("#cmbEventCategory"));
+                        populateComboBox(jQuery("#cmbEventLocation"));
+                        
+                        
+       
+
+
+                        var _event = "";
+                        //console.log(jQuery(element).children());
+                        var eventList = jQuery(element).children();
+
+                        jQuery("#eventList").empty();// removing all the events drawn previously
+
+                        if (eventList.length == 0) {
+                            //alert("add new evens");
+                            jQuery(\'#show-all-events-tab\').hide();
+                            jQuery(\'#show-all-events-tab\').removeClass("active");
+                            jQuery(\'#add-new-events-tab\').addClass("active");
+
+                            jQuery(\'#eventsTab\').removeClass(\'active in\');
+                            jQuery(\'#addNewEventTab\').addClass(\'active in\');
+                        } else {
+                           // alert("all events");
+                            jQuery(\'#show-all-events-tab\').show();
+                            jQuery(\'#show-all-events-tab\').addClass("active");
+                            jQuery(\'#add-new-events-tab\').removeClass("active");
+
+                            jQuery(\'#eventsTab\').addClass(\'active in\');
+                            jQuery(\'#addNewEventTab\').removeClass(\'active in\');
+                        }
+
+                        for (var i = 0; i < eventList.length; i++) {
+                            originalEvent = jQuery(eventList[i]).children()[0];
+                            //console.log(originalEvent);
+                            originalEventData = JSON.parse(jQuery(originalEvent).attr(\'event-data\'));
+                            //console.log(originalEventData);
+                            //var eventData = JSON.parse(jQuery(singleLink).attr(\'event-data\'));
+
+
+                            //_event += singleLink;
+
+                            _event = \'<a data-toggle="modal" data-target="#eventDetails" href="#" class="\' + ((originalEventData.event_status == 0) ? "" : "active") + \'"" onclick="loadEventData(\' + "event_" + originalEventData.event_id + \')" class="list-group-item">\' + originalEventData.event_name + \'<span class="badge">\' + ((originalEventData.event_status == 0) ? "Draft" : "Published") + \'</span></a>\';
+
+                            jQuery(jQuery(_event).addClass("list-group-item")).appendTo("#eventList");
+                            //jQuery("#eventList").append("a").addClass("list-group-item");
+
+
+                        }
+
+
+                        //console.log(jQuery("#eventList").append(_event));
+
+
+                    }
+
+
+                    //populating comboboxes categories/location to the combo box
+                    function populateComboBox(element){
+                        jQuery(element).empty();
+
+                        console.log(element.selector);
+
+                        var URL = "";
+                        if(element.selector =="#cmbEventCategory"){
+                            //retriving the catetories
+                            URL = "?eventEdit=true&eventGetData=true&action=getCategoryList&pk=1";
+                        }else if(element.selector =="#cmbEventLocation"){
+                            //retriving the location names
+                            URL = "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationList";
+                        }
+
+                        jQuery.ajax({
+                            url: URL,
+                            success: function (data) {
+                                var sourceObj = JSON.parse(data);
+
+
+                                jQuery.each(sourceObj, function (i, item) {
+                                    jQuery(element).append(jQuery("<option>", { 
+                                        value: item.value,
+                                        text : item.text 
+                                    }));
+
+
+                                
+                                });
+
+                                
+                                if(element.selector = "#cmbEventLocation"){
+                                    var newValue = jQuery("#cmbEventLocation").val();
+
+                                        jQuery.ajax({
+                                            url: "?eventEdit=true&eventGetData=true&getCategoryList=true&action=getLocationNames&pk=1",
+                                            success: function (data) {
+                                                var sourceObj = JSON.parse(data);
+                                                for (var i = sourceObj.length - 1; i >= 0; i--) {
+
+                                                    if (sourceObj[i].value == newValue) {
+                                                        console.log(sourceObj[i].text);
+                                                        initialize(sourceObj[i].text,true);
+
+                                                    }
+                                                }
+                                                ;
+
+
+                                            }
+                                        });
+                                }         
 
                             }
                         });
                     }
 
-                });
+
+                    </script>
 
 
-                setTimeout(function () {
-                    $.ajax({
-                        url: "?eventEdit=true&eventGetData=true&action=getLocationNames&pk=1",
-                        success: function (data) {
-                            var sourceObj = JSON.parse(data);
-                            for (var i = sourceObj.length - 1; i >= 0; i--) {
+                    <!-- Events  Modal -->
+                    <div class="bootstrap-wrapper">
+                        <div class="modal fade" id="events" role="dialog">
+                            <div class="modal-dialog" style="margin:15%">
 
-                                if (sourceObj[i].value == eventData.event_location_id) {
-
-                                    initialize(sourceObj[i].text);
-
-                                }
-                            }
-                            ;
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header hidden">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title" id="allEventsModalTitle">Event List</h4>
+                                    </div>
+                                    <div class="modal-body">
 
 
-                        }
-                    });
-                }, 50);
-                
+                                        <ul class="nav nav-tabs">
+                                            <li id="show-all-events-tab" class="active"><a data-toggle="tab"
+                                                                                           href="#eventsTab">Events</a></li>
+                                            <li id="add-new-events-tab"><a data-toggle="tab" href="#addNewEventTab">Add New Event</a>
+                                            </li>
 
+                                        </ul>
 
-                //initializing elemnts in "Add New tab"
-                
-                
+                                        <div class="tab-content">
+                                            <div id="eventsTab" class="tab-pane fade in active">
+                                                <br>
+                                                <!-- list of events-->
+                                                <div id="eventList" class="list-group">
 
+                                                    <a href="#" class="list-group-item">Dapibus ac facilisis in</a>
 
-            });';    
-
-    $returnText .=  '
-
-
-        }
-
-
-        //populating the event model
-        function populateEventModel(element) {
-            var _event = "";
-            //console.log(jQuery(element).children());
-            var eventList = jQuery(element).children();
-
-            jQuery("#eventList").empty();// removing all the events drawn previously
-
-            if (eventList.length == 0) {
-                //alert("add new evens");
-                jQuery(\'#show-all-events-tab\').hide();
-                jQuery(\'#show-all-events-tab\').removeClass("active");
-                jQuery(\'#add-new-events-tab\').addClass("active");
-
-                jQuery(\'#eventsTab\').removeClass(\'active in\');
-                jQuery(\'#addNewEventTab\').addClass(\'active in\');
-            } else {
-               // alert("all events");
-                jQuery(\'#show-all-events-tab\').show();
-                jQuery(\'#show-all-events-tab\').addClass("active");
-                jQuery(\'#add-new-events-tab\').removeClass("active");
-
-                jQuery(\'#eventsTab\').addClass(\'active in\');
-                jQuery(\'#addNewEventTab\').removeClass(\'active in\');
-            }
-
-            for (var i = 0; i < eventList.length; i++) {
-                originalEvent = jQuery(eventList[i]).children()[0];
-                //console.log(originalEvent);
-                originalEventData = JSON.parse(jQuery(originalEvent).attr(\'event-data\'));
-                //console.log(originalEventData);
-                //var eventData = JSON.parse(jQuery(singleLink).attr(\'event-data\'));
-
-
-                //_event += singleLink;
-
-                _event = \'<a data-toggle="modal" data-target="#eventDetails" href="#" class="\' + ((originalEventData.event_status == 0) ? "" : "active") + \'"" onclick="loadEventData(\' + "event_" + originalEventData.event_id + \')" class="list-group-item">\' + originalEventData.event_name + \'<span class="badge">\' + ((originalEventData.event_status == 0) ? "Draft" : "Published") + \'</span></a>\';
-
-                jQuery(jQuery(_event).addClass("list-group-item")).appendTo("#eventList");
-                //jQuery("#eventList").append("a").addClass("list-group-item");
-
-
-            }
-
-
-            //console.log(jQuery("#eventList").append(_event));
-
-
-        }
-
-
-    </script>
-
-
-    <!-- Events  Modal -->
-    <div class="bootstrap-wrapper">
-        <div class="modal fade" id="events" role="dialog">
-            <div class="modal-dialog" style="margin:15%">
-
-                <!-- Modal content-->
-                <div class="modal-content">
-                    <div class="modal-header hidden">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title" id="allEventsModalTitle">Event List</h4>
-                    </div>
-                    <div class="modal-body">
-
-
-                        <ul class="nav nav-tabs">
-                            <li id="show-all-events-tab" class="active"><a data-toggle="tab"
-                                                                           href="#eventsTab">Events</a></li>
-                            <li id="add-new-events-tab"><a data-toggle="tab" href="#addNewEventTab">Add New Event</a>
-                            </li>
-
-                        </ul>
-
-                        <div class="tab-content">
-                            <div id="eventsTab" class="tab-pane fade in active">
-                                <br>
-                                <!-- list of events-->
-                                <div id="eventList" class="list-group">
-
-                                    <a href="#" class="list-group-item">Dapibus ac facilisis in</a>
-
-                                </div>
-                            </div>
-                            <div id="addNewEventTab" class="tab-pane fade">
-                               
-
-
-                                <form class="form-horizontal">
-                                    <fieldset>
-
-                                        <div class="col-md-6">
-
-                                            <!-- Text input-->
-                                            <div class="form-group">
-                                              <label class="col-md-6 control-label" for="txtEventName">Event Name</label>  
-                                              <div class="col-md-6">
-                                              <input id="txtEventName" name="txtEventName" type="text" placeholder="Event Name" class="form-control input-md" required="">
-                                               
-                                              </div>
-                                            </div>
-
-                                            <!-- Select Basic -->
-                                            <div class="form-group">
-                                              <label class="col-md-6 control-label" for="cmbEventStatus">Event Status</label>
-                                              <div class="col-md-6">
-                                                <select id="cmbEventStatus" name="cmbEventStatus" class="form-control">
-                                                  <option value="0">Draft</option>
-                                                  <option value="1">Published</option>
-                                                </select>
-                                              </div>
-                                            </div>
-
-                                            <!-- Select Basic -->
-                                            <div class="form-group">
-                                              <label class="col-md-6 control-label" for="cmbEventRecurrence">Recurring Frequency</label>
-                                              <div class="col-md-6">
-                                                <select id="cmbEventRecurrence" name="cmbEventRecurrence" class="form-control">
-                                                  <option value="0">None</option>
-                                                  <option value="1">Daily</option>
-                                                  <option value="2">Weekly</option>
-                                                  <option value="3">Monthly</option>
-                                                  <option value="4">Yearly</option>
-                                                </select>
-                                              </div>
-                                            </div>
-
-
-                                            <div class="form-group">
-
-                                                <div class="col-md-6">
-                                                    <input type="text" id="add-new-start-Date">
-
-                                                    <input type="text" value="2012-05-15 21:05" id="datetimepicker">
                                                 </div>
                                             </div>
+                                            <div id="addNewEventTab" class="tab-pane fade">
+                                               
+
+                                                <form class="form-horizontal" id="add-new-event-form">
+                                                    <fieldset>
+
+                                                        <div class="row">
+                                                            <div id="responseMsg" class="col-md-12">
+
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                             <div class="col-md-6">
+
+
+                                                                <!-- Text input-->
+                                                                <div class="form-group">
+                                                                  <label class="col-md-6 " for="txtEventName">Event Name</label>  
+                                                                  <div class="col-md-6">
+                                                                  <input id="txtEventName" name="txtEventName" type="text" placeholder="Event Name" class="form-control input-md" required="">
+                                                                   
+                                                                  </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+
+                                                                  <label class="col-md-12 " for="textareaDescription">Event Description</label>
+                                                                  <div class="col-md-12">
+                                                                        <textarea class="wp-editor-area col-md-12" rows="7" cols="40" name="textareaDescription" id="textareaDescription"></textarea>
+                                                                    
+                                                                  </div>
+                                                                    
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <!-- first half start -->
+                                                            <div class="col-md-6">
+
+                                                               
+                                                                <!-- Select Basic -->
+                                                                <div class="form-group">
+                                                                  <label class="col-md-6 " for="cmbEventStatus">Event Status</label>
+                                                                  <div class="col-md-6">
+                                                                    <select id="cmbEventStatus" name="cmbEventStatus" class="form-control">
+                                                                      <option value="0">Draft</option>
+                                                                      <option value="1">Published</option>
+                                                                    </select>
+                                                                  </div>
+                                                                </div>
+
+                                                                <!-- Select Basic -->
+                                                                <div class="form-group">
+                                                                  <label class="col-md-6 " for="cmbEventRecurrence">Recurring Frequency</label>
+                                                                  <div class="col-md-6">
+                                                                    <select id="cmbEventRecurrence" name="cmbEventRecurrence" class="form-control">
+                                                                      <option value="0">None</option>
+                                                                      <option value="1">Daily</option>
+                                                                      <option value="2">Weekly</option>
+                                                                      <option value="3">Monthly</option>
+                                                                      <option value="4">Yearly</option>
+                                                                    </select>
+                                                                  </div>
+                                                                </div>
+
+
+                                                                <div class="form-group">
+                                                                    <label class="col-md-6 " for="add-new-start-Date">Start Date</label>
+
+                                                                    <div class="col-md-6">
+                                                                        <input type="text" name="txtAddNewStartDate" id="add-new-start-Date">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="col-md-6 " for="add-new-finish-Date">Finish Date</label>
+
+                                                                    <div class="col-md-6">
+                                                                        <input type="text" name="txtAddNewFinishDate" id="add-new-finish-Date">
+                                                                    </div>
+                                                                </div>
+
+
+                                                                <div class="form-group">
+                                                                  <label class="col-md-6 " for="cmbEventCategory">Event Category</label>
+                                                                  <div class="col-md-6">
+                                                                    <select id="cmbEventCategory"  name="cmbEventCategory" class="form-control">
+                                                                      
+                                                                    </select>
+                                                                  </div>
+                                                                </div>
+
+                                                            </div> <!-- first half ends-->
+
+                                                            <!-- second half starts-->
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                  <label class="col-md-6 " for="cmbEventLocation">Event Location</label>
+                                                                  <div class="col-md-6">
+                                                                    <select id="cmbEventLocation"  name="cmbEventLocation" class="form-control">
+                                                                      
+                                                                    </select>
+                                                                  </div>
+                                                                </div>
+
+                                                                <div id="googleMap2" class="col-md-12" style="height:250px"></div>
+
+                                                            </div>
+                                                            <!--second half ends-->
+                                                        </div>
+
+
+                                                        
+
+
+                                                       
+                                                    </fieldset>
+                                                </form>
+
+
+
+
+                                            </div>
+
                                         </div>
 
-                                        <diV class="col-md-6">
 
-                                        </div>
-
-                                        <div class="col-md-12">
-                                            <div clas
-                                        </div>
-                                    </fieldset>
-                                </form>
-
-
-
-
-
-
-                            </div>
-
-                        </div>
-
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Event details Modal -->
-    <div class="bootstrap-wrapper">
-        <div class="modal fade" id="eventDetails" role="dialog">
-            <div class="modal-dialog" style="margin:15%">
-
-                <!-- Modal content-->
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title" id="eventModalTitle">Event Name</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-12">
-
-                                <div class="col-md-6">
-                                    <div class="form-horizontal" role="form">
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventName">Event Name : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventName"></a>
-                                            <!-- </div> -->
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventStatus">Event Status : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventStatus"></a>
-                                            <!-- </div> -->
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventStatus">Recurring Frequency
-                                                : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventType"></a>
-                                            <!-- </div> -->
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventStatus">Start Date : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventStartDate"></a>
-                                            <!-- </div> -->
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventStatus">Finish Date : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventFinishDate"></a>
-                                            <!-- </div> -->
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="control-label " for="eventCategoryId">Event Category
-                                                : </label>
-                                            <!-- <div class="col-sm-10"> -->
-                                            <a href="#" id="eventCategoryId"></a>
-                                            <!-- <a id="addCategory" class="btn btn-primary glyphycon glyphicon-add"></a> -->
-                                            <!-- </div> -->
-                                        </div>
                                     </div>
-
+                                    <div class="modal-footer">
+                                        <button id ="btnAddNewEvent" type="button" onclick="jQuery(\'#add-new-event-form\').submit();" class="btn btn-primary">Add</button>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label " for="eventLocationId">Event Location : </label>
-                                        <!-- <div class="col-sm-10"> -->
-                                        <a href="#" id="eventLocationId"></a>
-                                        <!-- <a id="addCategory" class="btn btn-primary glyphycon glyphicon-add"></a> -->
-                                        <!-- </div> -->
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Event details Modal -->
+                    <div class="bootstrap-wrapper">
+                        <div class="modal fade" id="eventDetails" role="dialog">
+                            <div class="modal-dialog" style="margin:15%">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title" id="eventModalTitle">Event Name</h4>
                                     </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-12">
+
+                                                <div class="col-md-6">
+                                                    <div class="form-horizontal" role="form">
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventName">Event Name : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventName"></a>
+                                                            <!-- </div> -->
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventStatus">Event Status : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventStatus"></a>
+                                                            <!-- </div> -->
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventStatus">Recurring Frequency
+                                                                : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventType"></a>
+                                                            <!-- </div> -->
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventStatus">Start Date : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventStartDate"></a>
+                                                            <!-- </div> -->
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventStatus">Finish Date : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventFinishDate"></a>
+                                                            <!-- </div> -->
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label " for="eventCategoryId">Event Category
+                                                                : </label>
+                                                            <!-- <div class="col-sm-10"> -->
+                                                            <a href="#" id="eventCategoryId"></a>
+                                                            <!-- <a id="addCategory" class="btn btn-primary glyphycon glyphicon-add"></a> -->
+                                                            <!-- </div> -->
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label " for="eventLocationId">Event Location : </label>
+                                                        <!-- <div class="col-sm-10"> -->
+                                                        <a href="#" id="eventLocationId"></a>
+                                                        <!-- <a id="addCategory" class="btn btn-primary glyphycon glyphicon-add"></a> -->
+                                                        <!-- </div> -->
+                                                    </div>
 
 
-                                    <div id="googleMap" class="col-md-12" style="height:250px"></div>
+                                                    <div id="googleMap" class="col-md-12" style="height:250px"></div>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
                                 </div>
 
                             </div>
-
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div><!-- end of contentWrapper-->
-';
+                    </div><!-- end of contentWrapper-->
+                    ';
 
     
    // echo pr($shortcodeattributes);
@@ -878,6 +1197,16 @@ function WadCal1DynamicRedraw($shortcodeattributes){
     if ($month == '-') $month = date('m');
     if ($year == '-') $year = date('Y');
     if ($defaultview == '-') $defaultview=0;
+
+
+    //retrieving the default view of the user
+    $users_table = $wpdb->prefix . 'js_users';
+    $query = "SELECT default_view FROM $users_table WHERE user_id=$current_user->ID";
+    $settings_list = $wpdb->get_results($query);
+
+    if(!empty($settings_list)){
+        $defaultview = $settings_list[0]->default_view;
+    }
 
     //get the previous month's days - used to fill in the blank days at the start.  
     //make sure we roll over to december in the case of $month being January    
@@ -986,7 +1315,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
 
-    $returnText.= "<script>console.log('".weekOfMonth(date("Y-m-d"))."');</script>";
+    //$returnText.= "<script>console.log('".weekOfMonth(date("Y-m-d"))."');</script>";
 
 
 
@@ -1160,12 +1489,92 @@ function WADcal1($shortcodeattributes)
 add_action('parse_request', 'JKT_AJAX_query_handler');
 function JKT_AJAX_query_handler()
 {
+    global $wpdb,$current_user;
 
 
         $name = $_REQUEST['name'];
         $value = $_REQUEST['value'];
         $pk = $_REQUEST['pk'];
         $action = $_GET['action'];
+
+
+        $newEvent = $_REQUEST['eventNew']; // check to see the request is to add a new event
+
+        if(isset($newEvent)){
+            //adding new events
+            $eventName = $_REQUEST['eventName'];
+            $eventDescription = $_REQUEST['eventDescription'];
+            $eventStatus = $_REQUEST['eventStatus'];
+            $eventRecurrenceFrequency = $_REQUEST['eventRecurrenceFrequency'];
+
+            $eventStartDate = $_REQUEST['eventStartDate'];
+            $eventFinishDate = $_REQUEST['eventFinishDate'];
+            $eventCategoryId = $_REQUEST['eventCategoryId'];
+            $eventLocationId = $_REQUEST['eventLocationId'];
+
+            $event_table = $wpdb->prefix . 'js_events';
+
+
+            $validator = validate($eventName, $eventDescription, $eventStatus, $eventRecurrenceFrequency, $eventStartDate,$eventFinishDate,$eventCategoryId,$eventLocationId);
+
+
+
+            // A little data validation. Check if all fields contains something.
+            // user must be a logged in
+            if( ($validator!=1) || ($current_user->ID == 0)) { 
+                $msg = "Event was not inserted to the DB. Something went wrong. Make sure all your inputs are valid and please try again."; 
+                //$msg = date('Y-m-d', strtotime($eventFinishDate));
+                //$msg = strtotime($eventFinishDate);
+                http_response_code(400);
+                
+                //echo $validator;
+                echo $msg;      
+                exit;      
+            //.
+            } else {            
+                
+                $wpdb->insert($event_table,
+                      array( 'event_name' => $eventName,
+                             'event_start' => date('Y-m-d', strtotime($eventStartDate)),
+                             'event_finish' => date('Y-m-d', strtotime($eventFinishDate)),
+                             'event_recurring' => $eventRecurrenceFrequency,
+                             'event_category_id' => $eventCategoryId,
+                             'event_location_id' => $eventLocationId,
+                             'event_description' => $eventDescription,
+                             'event_organizer_id' => $current_user->ID,
+                             'event_status' => $eventStatus),
+                      array( '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d') );
+                      $event_id = $wpdb->insert_id;
+                $msg = "A new event has been added.";
+                echo $msg;
+                $user_info = get_userdata($current_user->ID);
+                $email_subject = $user_info->user_login . ' has added a new event';
+                $content = $user_info->user_login . ' has added an event! Here are the details:\n\n
+                Event Name: ' . $event_name . 
+                '\nEvent Start Date: ' . $event_start . 
+                '\nEvent Finish Date: ' . $event_finish . 
+                '\n\nYou can view the rest of the details here: <a href="'.get_admin_url().'/admin.php?page=manage_events&id='.$event_id.'&command=view">' . $event_name . '</a>';
+                $admin_email = get_option( 'admin_email' );
+                //jscal_send_email($admin_email, $email_subject, $content);
+
+               
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+            exit;
+
+        }
 
     if(isset($_REQUEST['redrawWADCalander']) && !empty($_REQUEST['redrawWADCalander'])){
         $month = $_REQUEST['month'];
@@ -1197,6 +1606,9 @@ function JKT_AJAX_query_handler()
     }
 
     if(isset($_REQUEST['eventEdit'])){
+
+
+
 
         if (!is_nan($pk)) { // checking for valid eventId
             global $wpdb, $current_user;
@@ -1352,6 +1764,76 @@ function JKT_AJAX_query_handler()
         }
         exit;    //important for our AJAX to work without returning the whole page
     }
+}
+
+
+
+//validating query data(8 args)
+function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, $eventStartDate, $eventFinishDate, $eventCategoryId, $eventLocationId){
+
+   $returnStatment = false;
+
+   //validation rules for the event name
+   if( (strlen($eventName) <100) && (strlen($eventName)>0) ){
+        $returnStatment = true;
+   }else{
+        $returnStatment = false;
+   }
+
+
+   //validation rules for event description
+   if( (strlen($eventDescription) >0) && (strlen($eventDescription) <1000) ){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+   //validation rules for event status
+   if( !is_nan($eventStatus) && ($eventStatus>=0 ) && ($eventStatus<=1) ){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+
+   //validation rules for event reccuring frequency
+   if( !is_nan($eventRecurrence) && ($eventRecurrence >= 0) && ($eventRecurrence<=4)){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+
+   //validation rules for event start date
+   if( ($eventStartDate!= "") && (strtotime($eventStartDate) != undefined) && (strtotime($eventStartDate) > 0) && (strtotime($eventStartDate) !="") &&  !is_nan(strtotime($eventStartDate)) ){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+   //validation rules for event finish date
+   if( ($eventFinishDate!= "") && (strtotime($eventFinishDate) != undefined) && (strtotime($eventFinishDate) > 0) && (strtotime($eventFinishDate) !="") &&  !is_nan(strtotime($eventFinishDate)) ){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+   //validation rules for event category
+   if( !is_nan($eventCategoryId)){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+
+   //validation rules for event location
+   if( !is_nan($eventLocationId)){
+        $returnStatment = $returnStatment && true;
+   }else{
+        $returnStatment = false;
+   }
+   
+
+   return $returnStatment;
 }
 
 

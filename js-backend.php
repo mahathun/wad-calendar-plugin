@@ -11,7 +11,99 @@ function jscal_load_scripts() {
 	wp_enqueue_script( 'json2' ); //required for AJAX to work with JSON	
 }
 
-// ===== Function to manage the events =====
+//======Dan - Function to manage settings ======
+function jscal_manage_settings() {
+	global $wpdb, $current_user;
+
+	echo  '
+		<div id="msg" style="overflow: auto"></div>
+		<div class="wrap">
+			<h2>Settings</h2>
+			<div style="clear: both"></div><hr>
+	';
+	
+
+	$users_table = $wpdb->prefix . 'js_users';
+
+	$user_id = $current_user->ID;
+	$query = "SELECT default_view FROM $users_table WHERE user_id=$user_id";
+
+
+	
+	if(isset($_REQUEST["settingsSubmit"])){
+		$settings_list = $wpdb->get_results($query);
+		//pr($settings_list);
+
+		if(!empty($settings_list) && isset($_REQUEST['default_view'])){
+			//update the table
+			$default_view = $_REQUEST['default_view'];
+			$wpdb->query($wpdb->prepare("UPDATE $users_table SET default_view='%d' WHERE user_id=$user_id",$default_view));
+
+		}else if(empty($settings_list) && isset($_REQUEST['default_view'])){
+			//insert to the table
+			$default_view = $_REQUEST['default_view'];
+			$wpdb->query($wpdb->prepare("INSERT INTO $users_table
+									 	( user_id, default_view)
+										VALUES ( %d, %d )"
+									 	,array($user_id,$default_view)));
+
+		}else{
+			echo "Something went wrong";
+		}
+
+	}	
+
+
+	$settings_list = $wpdb->get_results($query);
+	//echo $settings_list[0]->default_view;
+	if(!empty($settings_list)){
+		//displaying the currently selected value
+		show_settings($settings_list[0]->default_view);
+	}else{
+		//if there isnt a record
+		show_settings(null);
+	}
+
+	echo '</div>';
+}
+
+
+function show_settings($default){
+	if(isset($_REQUEST["settingsSubmit"])){
+		echo '<div id="message" class="updated notice notice-success is-dismissible below-h2"><p>Your Changes were updated successfully.</p><button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div>';
+	}
+	?>
+	
+	<form name="jscal_form_settings" id="jscal_form_settings" method="post" action="?page=manage_settings">
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<td scope="row"><label for="default_view">Default View</label></td>
+					<td>
+						<select id="default_view" name="default_view">
+							
+							<option value="0" <?php echo (isset($default) && $default==0)? "selected":"" ?>>Month View</option>
+							<option value="1" <?php echo (isset($default) && $default==1)? "selected":"" ?>>Week View</option>
+							<option value="2" <?php echo (isset($default) && $default==2)? "selected":"" ?>>List View</option>
+						</select>
+					</td>
+				</tr>
+				
+				<tr>
+					<td>
+						
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<input type="submit" name="settingsSubmit" value="Save" class="button-primary" />
+	</form>
+	
+	<?php
+
+}
+
+// ===== Dan -  Function to manage the events ends=====
 function jscal_manage_events() {
 	echo  '
 		<div id="msg" style="overflow: auto"></div>
