@@ -181,6 +181,80 @@ function get_events($year, $month)
 
                     break;
 
+                 //inserting monthly recuring events to the array
+                case '3':
+                 $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 month');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $var = (($month == $obj["event_month"])) ? "true" : "false";
+                        //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+
+                        if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        }
+                        $startDate->modify('+1 month');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
+
+                    }
+
+                    break;
+
+                 //inserting Yearly recuring events to the array
+                case '4':
+                 $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 year');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $var = (($month == $obj["event_month"])) ? "true" : "false";
+                        //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+
+                        if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        }
+                        $startDate->modify('+1 year');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
+
+                    }
+
+                    break;
+
                 default:
 
                     break;
@@ -191,6 +265,219 @@ function get_events($year, $month)
     }
     return $eventarray;
 
+}
+
+//date sorting function for usort()
+function date_compare($a, $b)
+{
+    $t1 = strtotime($a['event_date']);
+    $t2 = strtotime($b['event_date']);
+    return $t1 - $t2;
+}    
+
+//retrieving all the events from the database
+function get_all_events(){
+    global $wpdb, $current_user;
+
+    // Retrieve events from database
+    $event_table = $wpdb->prefix . 'js_events';
+    $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id FROM $event_table ORDER BY event_name DESC";
+    $event_list = $wpdb->get_results($query);
+
+
+    $eventarray = array();
+    // restructuring event array and extract year,month and day from the date and filtering the data according to the functions parameteres.
+    foreach ($event_list as $event) {
+
+        $date = $event->event_start;
+        $d = date_parse_from_format("Y-m-d", $date);
+
+
+        //if($year == $d["year"] && $month== $d["month"]){
+        $obj = array("event_id" => $event->event_id,
+            "event_name" => $event->event_name,
+            "event_status" => $event->event_status,
+            "event_description" => $event->event_description,
+            "event_start" => $event->event_start,
+            "event_finish" => $event->event_finish,
+            "event_type" => $event->event_recurring,
+            "event_category_id" => $event->event_category_id,
+            "event_location_id" => $event->event_location_id,
+
+
+            "event_year" => $d["year"],
+            "event_month" => $d["month"],
+            "event_day" => $d["day"],
+            "event_date" => $d["year"]."-".$d["month"]."-".$d["day"]);
+
+
+        //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+            array_push($eventarray, $obj);
+        //}
+
+        //displaying recuring events
+        if ($event->event_recurring > 0) {
+            switch ($event->event_recurring) {
+                //inserting daily recuring events to the array
+                case '1':
+                    $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 day');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                        //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
+                        //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        //}
+
+                        $startDate->modify('+1 day');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+                    }
+
+                    break;
+
+                //inserting weekly recuring events to the array
+                case '2':
+                    $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+7 day');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
+                        $var = (($month == $obj["event_month"])) ? "true" : "false";
+                        //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+
+                        //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        //}
+                        $startDate->modify('+7 day');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
+
+                    }
+
+                    break;
+
+                 //inserting monthly recuring events to the array
+                case '3':
+                 $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 month');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
+                        $var = (($month == $obj["event_month"])) ? "true" : "false";
+                        //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+
+                        //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        //}
+                        $startDate->modify('+1 month');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
+
+                    }
+
+                    break;
+
+                 //inserting Yearly recuring events to the array
+                case '4':
+                 $startDate = new DateTime($event->event_start);
+
+                    $finishDate = new DateTime($event->event_finish);
+                    //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
+                    $startDate->modify('+1 year');
+                    $startDateTimestamp = $startDate->getTimestamp();
+                    $finishDateTimestamp = $finishDate->getTimestamp();
+
+
+
+                    while ($finishDateTimestamp >= $startDateTimestamp) {
+
+                       
+
+                        $obj["event_year"] = $startDate->format("Y");
+                        $obj["event_month"] = $startDate->format("m");
+                        $obj["event_day"] = $startDate->format("d");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
+                        $var = (($month == $obj["event_month"])) ? "true" : "false";
+                        //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
+
+                       // echo "<script>console.log(".$startDate->format("d").");</script>";
+                        //echo "<script>console.log($finishDateTimestamp >= $startDateTimestamp);</script>";
+
+                        //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
+                            array_push($eventarray, $obj);
+                        //}
+                        $startDate->modify('+1 year');
+                        $startDateTimestamp = $startDate->getTimestamp();
+
+
+
+                    }
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+
+        //}
+    }
+
+    usort($eventarray, 'date_compare');// sorting array according to the event_date
+    return $eventarray;
 }
 
 //copy of the WADCal1 function redesigned as a dynamic call
@@ -343,7 +630,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                     });
 
 
-                    //turn to inline mode for the x-editable
+                    //turning on inline mode of the x-editable
                     jQuery(document).ready(function ($) {
                         $.fn.editable.defaults.mode = \'popover\';
                         $.fn.editable.defaults.placement = \'bottom\';
@@ -1297,16 +1584,30 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                 <div class="th">';
             break;
 
+        case '3':
+            // $returnText.= '<main id="calendar">
+            //                     <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
+            //                         <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" >Prev Day</span>
+            //                         <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
+            //                         <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12 && $week == $no_of_weeks_in_the_month)?1:(($week == $no_of_weeks_in_the_month)?$month+1:$month)).','.(($month==12 && $week==$no_of_weeks_in_the_month)?$year+1:$year).','.$nextWeek.')" >Next Day</span>
+            //                     </div>
+                                
+
+            //                     ';
+            break;
+
         default:
             # code...
             break;
     }
     
     //HEADING ROW: print out the week names 
-    foreach ($weekdays as $wd) {
-        $returnText.= '<span>' . $wd . '</span>';
+    if($defaultview != "3" && $defaultview != "2"){//preventing from printing the days if the default view is day/list
+        foreach ($weekdays as $wd) {
+            $returnText.= '<span>' . $wd . '</span>';
+        }
+        $returnText.= '</div>';
     }
-    $returnText.= '</div>';
 
     //CALENDAR WEEKS: generate the calendar body
     //starting day of the previous month, used to fill the blank day slots
@@ -1322,7 +1623,11 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
     //PART 1: first week with initial blank days (cells) or previous month
-    $returnText.= '<div class="week">';
+    if($defaultview != "2"  && $defaultview != "3"){
+        $returnText.= '<div class="week">';
+    }else if($defaultview ==3){
+        $returnText.="<div>&nbsp;</div>";
+    }
 
     for ($i = 0; $i < $dow; $i++)
         //refer to lines 43-53 in the WADcalendar.css for information regarding the data-date styling
@@ -1351,9 +1656,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
         //check for the week boundary - % returns the remainder of a division
         if (($i + $dow) % 7 == 0) { //no remainder means end of the week
-            //if($defaultview!= 1)
-            $returnText.= '</div><div class="week">';
-
+            if($defaultview!= "2" && $defaultview != "3"){
+                $returnText.= '</div><div class="week">';
+            }
             $tempWeekCount += 1;
         }
 
@@ -1376,7 +1681,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                 }
 
 
-            $returnText.= '</div>';
+                $returnText.= '</div>';
                 
                 break;
 
@@ -1410,6 +1715,32 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
                 break;
+
+            case '3'://if default view is list
+
+                // $returnText.="<div class=\" \">
+                //                 <div class=\"row\">
+                //                     <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                //                         <ul class=\"event-list\">
+                //                             <li>
+                //                                 <time datetime=\"2014-07-20 0000\">
+                //                                     <span class=\"day\">8</span>
+                //                                     <span class=\"month\">Jul</span>
+                //                                     <span class=\"year\">2014</span>
+                //                                     <span class=\"time\">12:00 AM</span>
+                //                                 </time>
+                //                                 <div class=\"info\">
+                //                                     <h2 class=\"title\">Shipment Ready</h2>
+                //                                     <p class=\"desc\"></p>
+                //                                 </div>
+                //                             </li>
+                //                         </ul>
+                //                     </div>
+                //                 </div>
+                //             </div>";
+
+
+                break;
             
             default:
                 # code...
@@ -1419,6 +1750,57 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         
     }
 
+
+    // printing the view if the default view is list view
+    if($defaultview=="3"){
+
+        $returnText.="<div id=\"list-view-container\" class=\"list-view-container\" >";
+
+        $event_list = get_all_events();
+
+        $isIdSet=false;
+        foreach ($event_list as $event) {
+            $upComingId = "";
+            if( (strtotime($event['event_date']) >strtotime( date('Y-m-d H:i:s'))) && !$isIdSet){
+                $upComingId = "next-up-comming-event";
+                $isIdSet =true;
+            }
+
+            //retrieving the month name by the month no.
+            $dateObj   = DateTime::createFromFormat('!m', $event['event_month']);
+            $monthName = $dateObj->format('M');
+           
+            $returnText.="<div id=\"".$upComingId."\" class=\"\">
+                                    <div class=\"row\">
+                                        <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                                            <ul class=\"event-list\">
+                                                <li >
+                                                    <time class=\"".(($event['event_status'] == 0)? 'draft':'')."\">
+                                                        <span class=\"day\">".$event['event_day']."</span>
+                                                        <span class=\"month\">".$monthName."</span>
+                                                        <span class=\"year\">".$event['event_year']."</span>
+                                                        <span class=\"time\">12:00 AM</span>
+                                                    </time>
+                                                    <div class=\"info\">
+                                                        <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
+                                                        <p class=\"desc\">".$event['event_description']."</p>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>";
+
+        }
+        //automatically scrolling to the next up coming event 
+        $returnText.="</div> <script>jQuery(\"#list-view-container\").animate({
+                                                                        scrollTop: (jQuery(\"#next-up-comming-event\").offset().top-jQuery(\"#list-view-container\").offset().top)
+                                                                    }, 1000);</script>";
+
+    }
+
+
+
     if($defaultview==0){
         //if default view is month prints the first days of the next month
         //PART 3: last week with blank days (cells) or couple of days from next month
@@ -1427,7 +1809,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             $returnText.= '<div data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
         //close off the calendar    
         $returnText.= '</div></main>';
-    }elseif ($defaultview==1 && $week == $no_of_weeks_in_the_month) {
+    }else if ($defaultview==1 && $week == $no_of_weeks_in_the_month) {
         //if default view is week and current week is the last week of the month, prints the frst days of the next month 
         //PART 3: last week with blank days (cells) or couple of days from next month
         $j = 1; //counter for next months days used to fill in the blank days at the end
@@ -1437,16 +1819,6 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         $returnText.= '</div></div></main>';
     }
     
-
-
-    
-
-
-    
-
-
-
-
 
 
     

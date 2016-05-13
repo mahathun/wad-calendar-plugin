@@ -84,7 +84,8 @@ function show_settings($default){
 							
 							<option value="0" <?php echo (isset($default) && $default==0)? "selected":"" ?>>Month View</option>
 							<option value="1" <?php echo (isset($default) && $default==1)? "selected":"" ?>>Week View</option>
-							<option value="2" <?php echo (isset($default) && $default==2)? "selected":"" ?>>List View</option>
+							<option value="2" <?php echo (isset($default) && $default==2)? "selected":"" ?>>Day View</option>
+							<option value="3" <?php echo (isset($default) && $default==3)? "selected":"" ?>>List View</option>
 						</select>
 					</td>
 				</tr>
