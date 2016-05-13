@@ -87,7 +87,7 @@ function get_events($year, $month)
 
         $date = $event->event_start;
         $d = date_parse_from_format("Y-m-d", $date);
-
+        $startDate = new DateTime($event->event_start);
 
         //if($year == $d["year"] && $month== $d["month"]){
         $obj = array("event_id" => $event->event_id,
@@ -103,7 +103,9 @@ function get_events($year, $month)
 
             "event_year" => $d["year"],
             "event_month" => $d["month"],
-            "event_day" => $d["day"]);
+            "event_day" => $d["day"],
+            "event_time" => $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a"),
+            "event_date" => $d["year"]."-".$d["month"]."-".$d["day"]);
 
 
         if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
@@ -132,6 +134,8 @@ function get_events($year, $month)
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
 
                         if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
                             array_push($eventarray, $obj);
@@ -163,6 +167,9 @@ function get_events($year, $month)
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
@@ -200,6 +207,9 @@ function get_events($year, $month)
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
@@ -237,6 +247,9 @@ function get_events($year, $month)
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
+                        $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
@@ -275,7 +288,7 @@ function date_compare($a, $b)
     return $t1 - $t2;
 }    
 
-//retrieving all the events from the database
+//retrieving all the events from the database and adding those to another array with considering recuring events
 function get_all_events(){
     global $wpdb, $current_user;
 
@@ -290,7 +303,8 @@ function get_all_events(){
     foreach ($event_list as $event) {
 
         $date = $event->event_start;
-        $d = date_parse_from_format("Y-m-d", $date);
+        $d = date_parse_from_format("Y-m-d :H:i", $date);
+        $startDate = new DateTime($event->event_start);
 
 
         //if($year == $d["year"] && $month== $d["month"]){
@@ -308,6 +322,7 @@ function get_all_events(){
             "event_year" => $d["year"],
             "event_month" => $d["month"],
             "event_day" => $d["day"],
+            "event_time" => $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a"),
             "event_date" => $d["year"]."-".$d["month"]."-".$d["day"]);
 
 
@@ -337,6 +352,7 @@ function get_all_events(){
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
 
                         //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
@@ -369,6 +385,7 @@ function get_all_events(){
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
@@ -408,6 +425,7 @@ function get_all_events(){
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
@@ -447,6 +465,7 @@ function get_all_events(){
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
+                        $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
@@ -702,9 +721,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
     
                         //redrawing the calender
-                        function redrawCalander(month,year,week){
+                        function redrawCalander(month,year,week,day){
                             //alert(week);
-                            if(week==undefined){// if default view is month
+                            if(week==undefined && day==undefined){// if default view is month
                                // console.log(\'not set\');
                                 //alert(\'not set\');
 
@@ -721,13 +740,31 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                             
                                         }
                                     });
-                            }else{//if deafult view is week
-                                console.log(\'set\');
+                            }else if(week != undefined && day==undefined){//if deafult view is week
+                                
 
                                
 
                                 jQuery.ajax({
                                         url: "?redrawWADCalander=true&month="+month+"&year="+year+"&week="+week,
+                                        success: function (data) {
+                                           // alert("redraw success");
+                                           //jQuery("#calendar").fadeOut("normal");
+                                           jQuery("#calendar").empty();
+                                            
+                                            jQuery("#calendar").html(data);
+                                            //console.log(data);
+                                            
+                                        }
+                                    });
+
+                            }else{// if default view is day
+
+                                
+
+
+                                jQuery.ajax({
+                                        url: "?redrawWADCalander=true&month="+month+"&year="+year+"&week="+week+"&day="+day,
                                         success: function (data) {
                                            // alert("redraw success");
                                            //jQuery("#calendar").fadeOut("normal");
@@ -1446,7 +1483,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
    // echo pr($shortcodeattributes);
     //days of the week used for headings. This particular method is not particulary multilanguage friendly.
     $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
-    extract(shortcode_atts(array('year' => '-', 'month' => '-', 'week' => weekOfMonth(date("Y-m-d")), 'defaultview' => '-'), $shortcodeattributes));
+    extract(shortcode_atts(array('year' => '-', 'month' => '-', 'week' => weekOfMonth(date("Y-m-d")), 'defaultview' => '-', 'dayfordayview' => '-'), $shortcodeattributes));
     
     // if(isset($shortcodeattributes['year']) && !empty($shortcodeattributes['year'])){
     //     $year = $shortcodeattributes['year'];
@@ -1484,6 +1521,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
     if ($month == '-') $month = date('m');
     if ($year == '-') $year = date('Y');
     if ($defaultview == '-') $defaultview=0;
+    if ($dayfordayview == '-') $dayfordayview=date('d');
 
 
     //retrieving the default view of the user
@@ -1541,6 +1579,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
     //calendar heading - note we are using flexbox for the styling
     switch ($defaultview) {
+        //month view
         case '0':
             $thedate = date('F Y', mktime(0, 0, 1, $month, 1, $year));
 
@@ -1554,6 +1593,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                             <div class="th">';
             break;
+
+        //week view
         case '1':
             $thedate = date('F Y', mktime(0, 0, 1, $month, 1, $year));
 
@@ -1570,9 +1611,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
             }
 
-            //echo "<script>console.log('wwwkddddddddddddd".(($week==1)?"true":"false")."')</script>";
-            //echo "<script>console.log('wwwkddddddddddddd".(($month==1)?"true":"false")."')</script>";
-            //echo "<script>console.log('wwwk ".(($month==1 && $week==1)?12:($week==1)?$month-1: $month)."')</script>";
+            
             $returnText.= '<main id="calendar">
                                 <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
                                     <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" >Prev Week</span>
@@ -1584,16 +1623,43 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                 <div class="th">';
             break;
 
-        case '3':
-            // $returnText.= '<main id="calendar">
-            //                     <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
-            //                         <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" >Prev Day</span>
-            //                         <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
-            //                         <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12 && $week == $no_of_weeks_in_the_month)?1:(($week == $no_of_weeks_in_the_month)?$month+1:$month)).','.(($month==12 && $week==$no_of_weeks_in_the_month)?$year+1:$year).','.$nextWeek.')" >Next Day</span>
-            //                     </div>
+        //day view
+        case '2':
+         $thedate = date('d F Y', mktime(0, 0, 1, $month, $dayfordayview, $year));
+
+
+            if(1<$week && $week<$no_of_weeks_in_the_month){
+                $prevWeek = $week-1;
+                $nextWeek = $week+1;
+            }else if($week==1){
+                $prevWeek = $no_of_weeks_in_the_prev_month;
+                $nextWeek = $week+1;
+            }else if($week==$no_of_weeks_in_the_month){
+                $prevWeek = $week-1;
+                $nextWeek = 1;
+
+            }
+
+            //for previous day button
+            $prevDay = date('d', strtotime('-1 day', strtotime($thedate)));
+            $prevMon = date('m', strtotime('-1 day', strtotime($thedate)));
+            $prevYear = date('Y', strtotime('-1 day', strtotime($thedate)));
+
+            //for next day button
+            $nextDay = date('d', strtotime('+1 day', strtotime($thedate)));
+            $nextMon = date('m', strtotime('+1 day', strtotime($thedate)));
+            $nextYear = date('Y', strtotime('+1 day', strtotime($thedate)));
+
+
+            $returnText.= '<main id="calendar">
+                                <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
+                                    <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.$prevMon.','.$prevYear.','.$prevWeek.','.$prevDay.')" >Prev Day</span>
+                                    <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
+                                    <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.$nextMon.','.$nextYear.','.$nextWeek.','.$nextDay.')" >Next Day</span>
+                                </div>
                                 
 
-            //                     ';
+                                ';
             break;
 
         default:
@@ -1716,29 +1782,62 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                 break;
 
-            case '3'://if default view is list
+            case '2'://if default view is list
+                
 
-                // $returnText.="<div class=\" \">
-                //                 <div class=\"row\">
-                //                     <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
-                //                         <ul class=\"event-list\">
-                //                             <li>
-                //                                 <time datetime=\"2014-07-20 0000\">
-                //                                     <span class=\"day\">8</span>
-                //                                     <span class=\"month\">Jul</span>
-                //                                     <span class=\"year\">2014</span>
-                //                                     <span class=\"time\">12:00 AM</span>
-                //                                 </time>
-                //                                 <div class=\"info\">
-                //                                     <h2 class=\"title\">Shipment Ready</h2>
-                //                                     <p class=\"desc\"></p>
-                //                                 </div>
-                //                             </li>
-                //                         </ul>
-                //                     </div>
-                //                 </div>
-                //             </div>";
+                foreach ($event_list as $event) {
+                            //pr($event["event_day"]);
+                    if ($event["event_day"] == $dayfordayview && $dayfordayview==($i+1)) {
 
+                        $events_exist = 1;
+
+                        //retrieving the month name by the month no.
+                        $dateObj   = DateTime::createFromFormat('!m', $event['event_month']);
+                        $monthName = $dateObj->format('M');
+
+                        $returnText.="<div class=\" \">
+                                        <div class=\"row\">
+                                            <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                                                <ul class=\"event-list\">
+                                                    <li >
+                                                        <time class=\"".(($event['event_status'] == 0)? 'draft':'')."\">
+                                                            <span class=\"day\">".$event['event_day']."</span>
+                                                            <span class=\"month\">".$monthName."</span>
+                                                            <span class=\"year\">".$event['event_year']."</span>
+                                                            <span class=\"time\">".$event['event_time']."</span>
+                                                        </time>
+                                                        <div class=\"info\">
+                                                            <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
+                                                            <p class=\"desc\">".$event['event_description']."</p>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>";
+                    }
+
+
+                }
+
+                // if( !isset($no_of_events)){
+                //     unset($no_of_events);
+                //     $returnText.="<div class=\" \">
+                //                         <div class=\"row\">
+                //                             <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                //                                 <ul class=\"event-list\">
+                //                                     <li >
+                                                        
+                //                                         <div class=\"info\">
+                //                                             <h2 class=\"title\">No events</h2>
+                //                                             <p class=\"desc\">".$event['event_description']."</p>
+                //                                         </div>
+                //                                     </li>
+                //                                 </ul>
+                //                             </div>
+                //                         </div>
+                //                     </div>";
+                // }
 
                 break;
             
@@ -1748,6 +1847,26 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         }
 
         
+    }
+
+    //printing "NO events div " if there are no events in the day view
+    if($defaultview=="2" && !isset($events_exist)){
+
+        $returnText.="<div class=\" \">
+                                        <div class=\"row\">
+                                            <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                                                <ul class=\"event-list\">
+                                                    <li >
+                                                        
+                                                        <div class=\"info\">
+                                                            <h2 class=\"title\" style='text-align:center;padding-top:1em;'>No events</h2>
+                                                            <p class=\"desc\"></p>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>";
     }
 
 
@@ -1779,7 +1898,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                         <span class=\"day\">".$event['event_day']."</span>
                                                         <span class=\"month\">".$monthName."</span>
                                                         <span class=\"year\">".$event['event_year']."</span>
-                                                        <span class=\"time\">12:00 AM</span>
+                                                        <span class=\"time\">".$event['event_time']."</span>
                                                     </time>
                                                     <div class=\"info\">
                                                         <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
@@ -1951,7 +2070,18 @@ function JKT_AJAX_query_handler()
     if(isset($_REQUEST['redrawWADCalander']) && !empty($_REQUEST['redrawWADCalander'])){
         $month = $_REQUEST['month'];
         $year =  $_REQUEST['year'];
-        if(isset($_REQUEST['week']) && isset($_REQUEST['month']) && isset($_REQUEST['year'])){
+        $day = $_REQUEST['day'];
+
+        if(isset($_REQUEST['week']) && isset($_REQUEST['month']) && isset($_REQUEST['year']) && isset($_REQUEST)){
+            $week = $_REQUEST['week'];
+            $month = $_REQUEST['month'];
+            $year =  $_REQUEST['year'];
+            $day = $_REQUEST['day'];
+
+            $param = array("month"=> $month, "year" => $year, "week"=>$week, "dayfordayview"=> $day);
+            $result = WadCal1DynamicRedraw($param);
+            echo $result;
+        }else if(isset($_REQUEST['week']) && isset($_REQUEST['month']) && isset($_REQUEST['year'])){
             $week = $_REQUEST['week'];
             $month = $_REQUEST['month'];
             $year =  $_REQUEST['year'];
