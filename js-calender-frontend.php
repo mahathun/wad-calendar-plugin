@@ -612,6 +612,112 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                         });  
 
 
+                        //validation settings and the submit handler for the commentSection
+                        jQuery("#commentForm").validate({
+                            rules: {
+                                comment: {           
+                                    required: true,   
+                                         
+                                },
+                            },
+                            messages: {               
+                                comment: {
+                                      required:" <span class=\"label label-danger\">Required</span>",
+                                      
+                                      },
+                            },
+                            submitHandler: function(form) {
+
+                                            var d = {
+                                                    comment : jQuery("#comment").val(),
+                                                    pk : jQuery("#commentForm").attr("event")
+                                                 
+                                                };
+                                                jQuery("#btnCommentSend").attr("disabled",true);
+
+
+
+                                                jQuery.ajax({
+                                                  type: "POST",
+                                                  url: "?commentNew=true",
+                                                  data: d,
+                                                  success: function(response){
+                                                    
+                                                    jQuery("#btnCommentSend").attr("disabled",false);
+                                                    jQuery("#commentResponseMsg").empty();
+                                                    jQuery("#commentResponseMsg").append("<div class=\"alert alert-success alert-dismissible\" role=\"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><strong>Success!</strong> "+response+"</div>");
+
+
+                                                     jQuery(".commentSection").animate({
+                                                                         scrollTop: jQuery("#commentResponseMsg").offset().top- jQuery(".commentSection").offset().top
+                                                                     }, 1000);
+
+
+
+
+                                                    //loading comments
+                                                    var eventData_eventId = jQuery("#commentForm").attr("event")
+                                                    jQuery.ajax({
+                                                            url: "?eventEdit=true&eventGetData=true&action=getComments&pk="+eventData_eventId,
+                                                            success: function (data) {
+                                                                var messages = JSON.parse(data);
+                                                                jQuery("#messagesList").empty();
+
+                                                                if( messages != null && messages.length != undefined){ // check to see whether there are comments for the event
+                                                                    for(var i =0; i<messages.length;i++){
+
+                                                                        jQuery("#messagesList").append("<li class=\"list-group-item \">"+
+                                                                                                "<div class=\"row\">"+
+                                                                                                    "<div class=\"col-xs-2 col-md-1\">"+
+                                                                                                        "<img src=\"http://0.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=80\" class=\"img-circle img-responsive\" alt=\"\" /></div>"+
+                                                                                                    "<div class=\"col-xs-10 col-md-11\">"+
+                                                                                                        "<div>"+
+                                                                                                            "<div class=\"mic-info\">"+
+                                                                                                                "By: <a href=\"#\">"+messages[i].messageAuthor+"</a> on "+messages[i].messageDate+
+                                                                                                            "</div>"+
+                                                                                                        "</div>"+
+                                                                                                        "<div class=\"comment-text\">"+
+                                                                                                            messages[i].messageContent+
+                                                                                                        "</div>"+
+                                                                                                        "<div class=\"action\">"+
+                                                                                                    "</div>"+
+                                                                                                "</div>"+
+                                                                                            "</li>");
+
+                                                                    }
+                                                                }
+                                                              
+
+
+                                                            }
+                                                        });
+                                                   
+
+                                                  },
+                                                  error:function(response){
+                                                    
+                                                    jQuery("#commentResponseMsg").empty();
+                                                    jQuery("#commentResponseMsg").append("<div class=\"alert alert-danger alert-dismissible\" role=\"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><strong>Error!</strong> "+response.responseText+"</div>");
+
+
+                                                    jQuery(".commentSection").animate({
+                                                                        scrollTop: jQuery("#commentResponseMsg").offset().top- jQuery(".commentSection").offset().top
+                                                                    }, 1000);
+
+                                                    jQuery("#btnCommentSend").attr("disabled",false);
+                                                    
+                                                  },
+                                                  
+                                                });
+
+                            }
+                        });
+
+
+
+
+
+
                         //loading the google map onto the div on change
                         jQuery(document).on("change", "#cmbEventLocation", function() {
                             console.log(jQuery(this).val()); // the selected options"s value
@@ -635,9 +741,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                 }
                             });
 
-                            // if you want to do stuff based on the OPTION element:
-                            //var opt = $(this).find("option:selected")[0];
-                            // use switch or if/else etc.
+                           
                         });
 
 
@@ -660,6 +764,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
                             $(\'#eventName\').editable("destroy");//destroying the already created fields
+                            $(\'#eventDescription\').editable("destroy");//destroying the already created fields
                             $(\'#eventStatus\').editable("destroy");//destroying the already created fields
                             $(\'#eventType\').editable("destroy");//destroying the already created fields
                             $(\'#eventStartDate\').editable("destroy");//destroying the already created fields
@@ -832,10 +937,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                         //loading event data into the model
                         function loadEventData(element) {
-                            // alert(\'test\');
-                            // var element = jQuery(ele)[0];
-                            // alert(\'test\');
-
+                            
                             
                             var eventData = JSON.parse(jQuery(element).attr(\'event-data\'));
 
@@ -844,11 +946,19 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                             jQuery(\'#eventModalTitle\').text(eventData.event_name);
 
                             jQuery(\'#eventName\').text(eventData.event_name);
+                            jQuery(\'#eventDescription\').text(eventData.event_description);
+
                             jQuery(\'#eventStatus\').text((eventData.event_status == 0) ? "Draft" : "Published");
                             jQuery(\'#eventType\').text((eventData.event_type == 0) ? "Non-Recurring" : (eventData.event_type == 1) ? "Daily" : (eventData.event_type == 2) ? "Weekly" : "Monthly");
 
                             jQuery(\'#eventStartDate\').text(eventData.event_start);
                             jQuery(\'#eventFinishDate\').text(eventData.event_finish);//setting default value when opening the modal
+
+
+
+                            //resetting comment commentSection
+                            jQuery("#commentResponseMsg").empty();
+                            jQuery("#comment").val("");
 
                             jQuery(document).ready(function ($) {
 
@@ -874,6 +984,29 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                     }
                                 });
+
+                                
+                                $(\'#eventDescription\').editable({
+                                    type: \'textarea\',
+                                    pk: eventData.event_id,
+                                    url: \'?eventEdit=true\',
+                                    title: \'Enter event Description\',
+
+
+
+                                    success: function (response, newValue) {
+                                       
+                                        eventData.event_description = newValue;
+                                        //changing  clander data to new values
+                                        eventData.event_description = newValue;
+                                        $(element).attr(\'event-data\', JSON.stringify(eventData));
+                                        
+                                        $(element).attr("title", newValue);
+                                        
+
+                                    }
+                                });
+
 
 
                                 $(\'#eventStatus\').editable({
@@ -1011,6 +1144,44 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                     }
 
                                 });
+
+
+                                //loading comments
+                                $("#commentForm").attr("event",eventData.event_id)
+                                $.ajax({
+                                        url: "?eventEdit=true&eventGetData=true&action=getComments&pk="+eventData.event_id,
+                                        success: function (data) {
+                                            var messages = JSON.parse(data);
+                                            $("#messagesList").empty();
+
+                                            if( messages != null && messages.length != undefined){ // check to see whether there are comments for the event
+                                                for(var i =0; i<messages.length;i++){
+
+                                                    $("#messagesList").append("<li class=\"list-group-item \">"+
+                                                                            "<div class=\"row\">"+
+                                                                                "<div class=\"col-xs-2 col-md-1\">"+
+                                                                                    "<img src=\"http://0.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=80\" class=\"img-circle img-responsive\" alt=\"\" /></div>"+
+                                                                                "<div class=\"col-xs-10 col-md-11\">"+
+                                                                                    "<div>"+
+                                                                                        "<div class=\"mic-info\">"+
+                                                                                            "By: <a href=\"#\">"+messages[i].messageAuthor+"</a> on "+messages[i].messageDate+
+                                                                                        "</div>"+
+                                                                                    "</div>"+
+                                                                                    "<div class=\"comment-text\">"+
+                                                                                        messages[i].messageContent+
+                                                                                    "</div>"+
+                                                                                    "<div class=\"action\">"+
+                                                                                "</div>"+
+                                                                            "</div>"+
+                                                                        "</li>");
+
+                                                }
+                                            }
+                                          
+
+
+                                        }
+                                    });
 
 
                                 setTimeout(function () {
@@ -1397,18 +1568,46 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                         <h4 class="modal-title" id="eventModalTitle">Event Name</h4>
                                     </div>
                                     <div class="modal-body">
+
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="col-md-6">
+                                                    <div class="form-horizontal" role="form">
+
+                                                            <div class="form-group">
+                                                                <label class="control-label " for="eventName">Event Name : </label>
+                                                                <!-- <div class="col-sm-10"> -->
+                                                                <a href="#" id="eventName"></a>
+                                                                <!-- </div> -->
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                                <label class="control-label " for="eventDescription">Event Description : </label>
+                                                                <!-- <div class="col-sm-10"> -->
+                                                                <a href="#" id="eventDescription"></a>
+                                                                <!-- </div> -->
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
                                         <div class="row">
                                             <div class="col-md-12">
 
                                                 <div class="col-md-6">
                                                     <div class="form-horizontal" role="form">
 
-                                                        <div class="form-group">
-                                                            <label class="control-label " for="eventName">Event Name : </label>
-                                                            <!-- <div class="col-sm-10"> -->
-                                                            <a href="#" id="eventName"></a>
-                                                            <!-- </div> -->
-                                                        </div>
+                                                       
 
                                                         <div class="form-group">
                                                             <label class="control-label " for="eventStatus">Event Status : </label>
@@ -1466,6 +1665,49 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                             </div>
 
+                                        </div>
+
+                                        <div class="row">
+
+                                            <div col-md-12 style="padding-top:2em">
+                                                    <div class="panel panel-default widget" id="panelMsg">
+                                                        <div class="panel-heading">
+                                                            <span class="glyphicon glyphicon-comment"></span>
+                                                            <h3 class="panel-title">
+                                                                <a data-toggle="collapse" data-target="#collapseMsgSection" href="#collapseMsgSection" class="collapsed">
+                                                                    Comments
+                                                                </a>
+                                                            </h3>
+                                                        </div>
+                                                        <div id="collapseMsgSection" class="panel-collapse collapse">
+                                                            <div class="panel-body commentSection">
+
+                                                                <!--posting comments-->
+                                                                <div>
+                                                                    <div id="commentResponseMsg"></div>
+                                                                     <form id="commentForm">
+                                                                      <div class="form-group">
+                                                                        <label for="comment">Your Comment</label>
+                                                                        <textarea id="comment" name="comment" required="true" class="form-control" rows="3"></textarea>
+                                                                      </div>
+                                                                      <button id="btnCommentSend" type="submit" class="btn btn-default">Send</button>
+                                                                    </form>
+
+                                                                </div>
+
+                                                                <ul class="list-group" id="messagesList">
+
+                                                                    
+
+                                                                    
+                                                                    
+                                                                </ul>
+                                                                
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                               
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
@@ -1990,7 +2232,41 @@ function JKT_AJAX_query_handler()
 
 
         $newEvent = $_REQUEST['eventNew']; // check to see the request is to add a new event
+        $newComment = $_REQUEST['commentNew']; // check to see whether the request is to add a comment
 
+        //adding new comments
+        if(isset($newComment)){
+            $comment = $_REQUEST['comment'];
+
+            if(validatePK($pk) && validateComment($comment)){
+
+                $messages_table = $wpdb->prefix . 'js_messages'; 
+               
+                $wpdb->insert($messages_table,
+                      array( 'message_date' => date('Y-m-d H:i:s'),
+                             'message_content' => $comment,
+                             'message_author' => $current_user->ID,
+                             'event_id' => $pk,
+                             ),
+                      array( '%s', '%s', '%d', '%d') );
+
+                echo "Your comment was successfuly added";
+
+
+
+            }else{
+                http_response_code(400);
+                echo "Something went wrong. Pl. try again. And this time, make sure to enter valid data. ;)";
+            }
+
+            
+
+            
+            exit;
+
+        }
+
+        //adding new events
         if(isset($newEvent)){
             //adding new events
             $eventName = $_REQUEST['eventName'];
@@ -2162,6 +2438,27 @@ function JKT_AJAX_query_handler()
                             }
                             echo json_encode($venue_list_json);
                             break;
+
+                        //returning comments for a event
+                        case 'getComments':
+                            $messages_table = $wpdb->prefix . 'js_messages';
+                            $wp_user_table = $wpdb->prefix. 'users';
+//                             
+                            $messages_list = $wpdb->get_results("SELECT $messages_table.message_date, $messages_table.message_content, $wp_user_table.display_name
+                                                                    FROM `$messages_table`
+                                                                    INNER JOIN `$wp_user_table`
+                                                                    ON $messages_table.message_author = $wp_user_table.ID
+
+                                                                    WHERE event_id=$pk
+
+                                                                    ORDER BY $messages_table.message_date DESC");
+
+                            foreach ($messages_list as $message) {
+                                $messages_list_json[] = array('messageDate' => $message->message_date, 'messageContent' => $message->message_content, 'messageAuthor'=> $message->display_name);
+                            }
+                            echo json_encode($messages_list_json);
+                            
+                            break;
                         default:
 
                             break;
@@ -2183,6 +2480,12 @@ function JKT_AJAX_query_handler()
                                 $value = trim($value);
                                 $value = stripcslashes($value);
                                 $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='$value' WHERE `event_id`=%d", $pk));
+                                break;
+
+                            case 'eventDescription':
+                                $value = trim($value);
+                                $value = stripcslashes($value);
+                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='$value' WHERE `event_id`=%d", $pk));
                                 break;
 
                             case 'eventStatus':
@@ -2336,6 +2639,22 @@ function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, 
    
 
    return $returnStatment;
+}
+
+function validatePK($pk){
+    if($pk!= null && $pk!="" && !is_nan($pk) && $pk > 0){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+function validateComment($comment){
+    if($comment != ""){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 
