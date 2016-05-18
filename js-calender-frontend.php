@@ -75,7 +75,75 @@ class DJK_upcoming_events extends WP_Widget {
     //displaying the fron end
     function widget($args, $instance){
 
-        $allEvents = get_all_events();
+        echo '<!-- Search event modal -->
+                    <div class="bootstrap-wrapper">
+                        <div id="eventSearch" class="modal fade" role="dialog">
+                          <div class="modal-dialog" style="margin:15%" >
+
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Search Event</h4>
+                              </div>
+                              <div class="modal-body">
+                                <div>
+                                    <div class="col-lg-6">
+                                        <div class="input-group">
+                                          <input id="searchEvents" type="text" class="form-control" placeholder="Search description...">
+                                          <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" onclick="searchDesc()">GoS</button>
+                                          </span>
+                                        </div><!-- /input-group -->
+                                      </div><!-- /.col-lg-6 -->
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table">
+                                            <th>Event Name</th>
+                                            <th>Event Description</th>
+                                            <th>Event Date</th>
+                                            
+                                            <tbody id="searchEventsBody">
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                    </div>
+';
+       
+        echo '<script>
+                    function searchDesc(){
+                        desc = jQuery("#searchEvents").val();
+                        d = {description: desc};
+                        jQuery.ajax({
+                                url: "?eventEdit=true&eventGetData=true&action=getEventsByDescription&pk=1",
+                                data:d,
+                                success: function (data) {
+                                    var events =  JSON.parse(data);
+                                    jQuery("#searchEventsBody").empty();
+                                    for(var i=0; i<events.length; i++ ){
+                                        jQuery("#searchEventsBody").append("<tr><td>"+events[i].event_name+"</td><td>"+events[i].event_description+"</td><td>"+events[i].event_date+"</td></tr>")
+
+                                    }
+                                   
+
+                                }
+                            });
+                    }
+
+              </script>';
+
+        $allEvents = get_all_events(false,false);
         $counter =0;
         
         if(isset($instance['no_of_events_to_show']) && !empty($instance['no_of_events_to_show'])){
@@ -92,7 +160,13 @@ class DJK_upcoming_events extends WP_Widget {
                 <div class="well widget">
                     <div class="row">
                         <div class="col-md-12">
-                            <h4>Upcoming Events</h4>
+                            <h4>
+                                Upcoming Events 
+                                <button class="btn btn-primary btn-xs pull-right" data-toggle="modal" data-target="#eventSearch">
+                                    <i class="glyphicon glyphicon-search"></i> Search
+                                </button>
+                                
+                            </h4>
                         </div>
                     </div>
                     <div class="row">
@@ -409,12 +483,17 @@ function date_compare($a, $b)
 }    
 
 //retrieving all the events from the database and adding those to another array with considering recuring events
-function get_all_events(){
+function get_all_events($desc, $date){
     global $wpdb, $current_user;
 
     // Retrieve events from database
     $event_table = $wpdb->prefix . 'js_events';
     $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id FROM $event_table ORDER BY event_name DESC";
+    
+    //search events according to the description
+    if($desc!= false && !empty($desc)){
+        $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id FROM $event_table WHERE event_description LIKE '%$desc%' ORDER BY event_name DESC";
+    }
     $event_list = $wpdb->get_results($query);
 
 
@@ -446,7 +525,7 @@ function get_all_events(){
             "event_month" => $startDate->format("m"),
             "event_day" => $startDate->format("d"),
             "event_time" => $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a"),
-            "event_date" => $startDate->format("y")."-".$startDate->format("m")."-".$startDate->format("d"),
+            "event_date" => $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d"),
             "event_timestamp" => $dd->getTimestamp()
             );
 
@@ -1861,6 +1940,10 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                             </div>
                         </div>
                     </div>
+
+
+
+                    
                     </div><!-- end of contentWrapper-->
                     ';
 
@@ -1870,39 +1953,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
     $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
     extract(shortcode_atts(array('year' => '-', 'month' => '-', 'week' => weekOfMonth(date("Y-m-d")), 'defaultview' => '-', 'dayfordayview' => '-'), $shortcodeattributes));
     
-    // if(isset($shortcodeattributes['year']) && !empty($shortcodeattributes['year'])){
-    //     $year = $shortcodeattributes['year'];
-    // }else{
-    //     $year = date('Y');
-    // }
-
-    // if(isset($shortcodeattributes['month']) && !empty($shortcodeattributes['month'])){
-    //     $month = $shortcodeattributes['month'];
-    // }else{
-    //     $month = date('m');
-    // }
-
-    // if(isset($shortcodeattributes['week']) && !empty($shortcodeattributes['week'])){
-    //     $week = $shortcodeattributes['week'];
-    // }else{
-    //     $week = weekOfMonth(date("Y-m-d"));
-    // }
-
-    // if(isset($shortcodeattributes['defaultview']) && !empty($shortcodeattributes['defaultview'])){
-    //     $defaultView = $shortcodeattributes['defaultview'];
-    //     //echo 'in';
-    // }else{
-    //     $defaultView=0;
-    // }
-
-
-    //echo "<script>console.log(test $week);</script>";
-    //default to the current month and year
-    // echo "month : ".$month;
-    // echo "year : ".$year;
-    // echo "week : ".$week;
-    // echo "defaultView : ".$defaultView;
-    // $defaultView = $default_View;
+    
     if ($month == '-') $month = date('m');
     if ($year == '-') $year = date('Y');
     if ($defaultview == '-') $defaultview=0;
@@ -2205,24 +2256,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                 }
 
-                // if( !isset($no_of_events)){
-                //     unset($no_of_events);
-                //     $returnText.="<div class=\" \">
-                //                         <div class=\"row\">
-                //                             <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
-                //                                 <ul class=\"event-list\">
-                //                                     <li >
-                                                        
-                //                                         <div class=\"info\">
-                //                                             <h2 class=\"title\">No events</h2>
-                //                                             <p class=\"desc\">".$event['event_description']."</p>
-                //                                         </div>
-                //                                     </li>
-                //                                 </ul>
-                //                             </div>
-                //                         </div>
-                //                     </div>";
-                // }
+               
 
                 break;
             
@@ -2260,7 +2294,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
         $returnText.="<div id=\"list-view-container\" class=\"list-view-container\" >";
 
-        $event_list = get_all_events();
+        $event_list = get_all_events(false,false);
 
         $isIdSet=false;
         foreach ($event_list as $event) {
@@ -2320,7 +2354,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         for ($i = 0; $i < $lastblankdays; $i++)
             $returnText.= '<div data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
         //close off the calendar    
-        $returnText.= '</div></div></main>';
+        $returnText.= '</div></div> </main>';
     }
     
 
@@ -2345,18 +2379,7 @@ function weekOfMonth($date) {
 
 function WADcal1($shortcodeattributes)
 {
-    
-
-   
     echo WadCal1DynamicRedraw($shortcodeattributes);
-
-
-
-        //echo ;
-
-            
-
-            //echo;
 
 }
 
@@ -2549,7 +2572,7 @@ function JKT_AJAX_query_handler()
                         case 'getCategoryList':
                             $category_table = $wpdb->prefix . 'js_categories';
 
-                            $category_list = $wpdb->get_results("SELECT `category_id`,`category_name`, `category_status` FROM `$category_table`");
+                            $category_list = $wpdb->get_results("SELECT `category_id`,`category_name`, `category_status` FROM `$category_table` WHERE category_status=1");
 
                             foreach ($category_list as $category) {
                                 $category_list_json[] = array('value' => $category->category_id, 'text' => $category->category_name);
@@ -2601,6 +2624,13 @@ function JKT_AJAX_query_handler()
                             }
                             echo json_encode($messages_list_json);
                             
+                            break;
+
+                        case 'getEventsByDescription':
+                            $searcchDescription = $_REQUEST['description'];
+                            //echo $searcchDescription;
+                            echo json_encode(get_all_events($searcchDescription,false));
+                            //echo "get events by desc";
                             break;
                         default:
 
