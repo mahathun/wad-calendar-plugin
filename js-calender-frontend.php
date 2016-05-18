@@ -2117,9 +2117,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             case '0'://if default view is month
 
                 //print the actual day (cell) with events
-                $returnText.= '<div id="dayCell" data-date="' . ($i + 1) . '" data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
+                $returnText.= '<div id="dayCell" data-date="' . ($i + 1) . '"'.(( ($year == date("Y")) && ($month == date("m")) && (($i+1) == date("d")) )?" style=\"border:1px solid #93CA81;\" ":"").' data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
 
-
+                ;
                 //event code and such here
                 foreach ($event_list as $event) {
                     //pr($event["event_day"]);
@@ -2141,7 +2141,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                 if($tempWeekCount==$week){
 
                     //print the actual day (cell) with events
-                    $returnText.= '<div id="dayCell" data-date="' . ($i + 1) . '" data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
+                    $returnText.= '<div id="dayCell" data-date="' . ($i + 1) . '"'.(( ($year == date("Y")) && ($month == date("m")) && (($i+1) == date("d")) )?" style=\"border:1px solid #93CA81;\" ":"").' data-toggle="modal" data-target="#events" onclick="populateEventModel(this)">'; //add 1 to the for loop variable as it starts at zero not one
 
 
                     //event code and such here
