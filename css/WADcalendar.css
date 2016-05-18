@@ -219,3 +219,38 @@ html,body{margin:0;padding:0;border:0;font-size:100%;height:100%}
     overflow-y:scroll;
 }
 /*comment section ends */
+
+/* widget */
+
+.widget-upcoming-event-list{
+
+}
+
+.widget-upcoming-event-list > div {
+    min-height: 5em;
+    max-height: 8em;
+    overflow: hidden;
+}
+
+.widget .bs-callout {
+    padding: 20px;
+    margin:.2em 0em;
+    border: 10px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+
+    
+}
+
+.widget .bs-callout-info {
+    border-left: .3em solid #5bc0de !important;
+   /* border-left-color: #428bca !important; */
+}
+
+.widget .bs-callout-default {
+    border-left: .3em solid #777 !important;
+
+   
+}
+
+/*widget styles end *?

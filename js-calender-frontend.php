@@ -1,5 +1,7 @@
 <?php
-date_default_timezone_set("Pacific/Auckland");
+
+$timezone = "Pacific/Auckland";
+date_default_timezone_set($timezone);
 
 
 //simple variable debug function
@@ -24,6 +26,124 @@ add_action('wp_enqueue_scripts', 'WAD_2016_scripts'); // generate the calander U
 add_shortcode('wadcal-DJK', 'WADcal1');
 
 //----------------------------------------------------------------------------------
+
+
+
+// ------ widget starts-----//
+
+class DJK_upcoming_events extends WP_Widget {
+
+    function __construct(){
+        parent::__construct(
+                'djk_upcoming_events',
+
+                __('DJK- Upcoming Events', 'djkwidget'),
+
+                array(
+                        'description' => __('This widget is a part of DJK-Plugin and will display all the upcoming events', 'djkwidget')
+                    )
+            );
+    }
+
+    //displaying the backend option
+    function form($instance){ 
+            $no_of_events_to_show = esc_attr( $instance['no_of_events_to_show'] );
+            ?>
+            <p>
+                <label for="<?php echo $this->get_field_id('no_of_events_to_show'); ?>"><?php _e('No of events to show (default = 5):'); ?></label> 
+                <input class="" id="<?php echo $this->get_field_id('no_of_events_to_show'); ?>" name="<?php echo $this->get_field_name('no_of_events_to_show'); ?>" type="text" value="<?php echo $no_of_events_to_show; ?>" />
+            </p>
+
+
+            <?php
+    }
+
+    //updating the backend option
+    function update($new_instance, $old_instance){
+        $instance = $old_instance;
+
+        $newValue = floor(strip_tags($new_instance['no_of_events_to_show']));
+        $oldValue = strip_tags($old_instance['no_of_events_to_show']);
+
+        $instance['no_of_events_to_show'] = (is_numeric($newValue)  )?$newValue:((is_numeric($oldValue))?$oldValue:"5");     
+
+
+
+        return $instance;
+    }
+
+    //displaying the fron end
+    function widget($args, $instance){
+
+        $allEvents = get_all_events();
+        $counter =0;
+        
+        if(isset($instance['no_of_events_to_show']) && !empty($instance['no_of_events_to_show'])){
+            $no_of_events_to_show = $instance['no_of_events_to_show'];
+        }else{
+            $no_of_events_to_show ="5";
+
+        }
+
+        //pr($allEvents);
+
+        $currentTimestamp = strtotime(date("Y-m-d H:i:s"));
+        echo '<div class="bootstrap-wrapper">
+                <div class="well widget">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4>Upcoming Events</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            
+                            <div class="list-group widget-upcoming-event-list">';
+                                                
+
+
+        foreach ($allEvents as $event) {
+
+            if( ($counter < $no_of_events_to_show) && ($event['event_timestamp'] > $currentTimestamp)){
+                $counter+=1;
+               
+                echo '<div class="list-group-item bs-callout bs-callout-info">
+                                                    <a href="#" class="col-md-12">
+                                                        <span class="truncate pull-left">'.$event['event_name'].'</span>
+                                                        <span class="badge pull-right">'.$event['event_date'].'</span>
+                                                    </a>
+
+                                                    <div class="widget-item-description">
+                                                        
+                                                        '.$event['event_description'].'
+                                                        
+                                                    </div>
+                                                </div>';
+
+
+
+            }
+
+            # code...
+        }
+        echo '
+                                                
+                            </div>
+                        </div>
+                    </div>    
+                </div>
+              </div>';
+        
+    }
+}
+
+
+// action hook
+add_action('widgets_init', function(){
+        register_widget('DJK_upcoming_events');
+});
+//-------- widget ends-----//
+
 
 
 //loading css files and js files
@@ -306,6 +426,9 @@ function get_all_events(){
         $d = date_parse_from_format("Y-m-d :H:i", $date);
         $startDate = new DateTime($event->event_start);
 
+        $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+        $dd = new DateTime($event_recurring_date);
+        
 
         //if($year == $d["year"] && $month== $d["month"]){
         $obj = array("event_id" => $event->event_id,
@@ -319,11 +442,13 @@ function get_all_events(){
             "event_location_id" => $event->event_location_id,
 
 
-            "event_year" => $d["year"],
-            "event_month" => $d["month"],
-            "event_day" => $d["day"],
+            "event_year" => $startDate->format("y"),
+            "event_month" => $startDate->format("m"),
+            "event_day" => $startDate->format("d"),
             "event_time" => $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a"),
-            "event_date" => $d["year"]."-".$d["month"]."-".$d["day"]);
+            "event_date" => $startDate->format("y")."-".$startDate->format("m")."-".$startDate->format("d"),
+            "event_timestamp" => $dd->getTimestamp()
+            );
 
 
         //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
@@ -343,6 +468,9 @@ function get_all_events(){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
+                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                    $dd = new DateTime($event_recurring_date);
+
                     while ($finishDateTimestamp >= $startDateTimestamp) {
 
                         //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -354,6 +482,7 @@ function get_all_events(){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+                        $obj["event_timestamp"] = $dd->getTimestamp();
 
                         //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
                             array_push($eventarray, $obj);
@@ -376,6 +505,9 @@ function get_all_events(){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
+                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                    $dd = new DateTime($event_recurring_date);
+
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
@@ -387,6 +519,7 @@ function get_all_events(){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+                        $obj["event_timestamp"] = $dd->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -416,6 +549,10 @@ function get_all_events(){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
+                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                    $dd = new DateTime($event_recurring_date);
+
+
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
@@ -427,6 +564,7 @@ function get_all_events(){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+                        $obj["event_timestamp"] = $dd->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -456,6 +594,9 @@ function get_all_events(){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
+                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                    $dd = new DateTime($event_recurring_date);
+
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
@@ -467,6 +608,7 @@ function get_all_events(){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
+                        $obj["event_timestamp"] = $dd->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -894,6 +1036,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                            
                             var myCenter = new google.maps.LatLng(51.508742, -0.120850);
+                            //var myCenter = "";
                             var mapProp = {
                                 center: myCenter,
                                 zoom: 10,
@@ -929,7 +1072,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                         position: results[0].geometry.location
                                     });
                                 } else {
-                                    alert(\'Geocode was not successful for the following reason: \' + status);
+                                    alert(\'Please enter a valid address \');
                                 }
                             });
                         }
@@ -2479,20 +2622,20 @@ function JKT_AJAX_query_handler()
                             case 'eventName':
                                 $value = trim($value);
                                 $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='$value' WHERE `event_id`=%d", $pk));
+                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='%s' WHERE `event_id`=%d",$value , $pk));
                                 break;
 
                             case 'eventDescription':
                                 $value = trim($value);
                                 $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='$value' WHERE `event_id`=%d", $pk));
+                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='%s' WHERE `event_id`=%d", $value ,$pk));
                                 break;
 
                             case 'eventStatus':
                                 if (!is_nan($value) && $value <= 1 && $value >= 0) {
                                     $value = trim($value);
                                     $value = stripcslashes($value);
-                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_status`='$value' WHERE `event_id`=%d", $pk));
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_status`='%d' WHERE `event_id`=%d",$value , $pk));
                                 } else {
                                     echo "Please select a valid status";
                                     http_response_code(400);
@@ -2503,21 +2646,21 @@ function JKT_AJAX_query_handler()
                                 if (!is_nan($value)) {
                                     $value = trim($value);
                                     $value = stripcslashes($value);
-                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_recurring`='$value' WHERE `event_id`=%d", $pk));
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_recurring`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }
                                 break;
 
                             case 'eventStartDate':
                                 $value = trim($value);
                                 $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_start`='$value' WHERE `event_id`=%d", $pk));
+                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_start`='%s' WHERE `event_id`=%d",$value , $pk));
 
                                 break;
 
                             case 'eventFinishDate':
                                 $value = trim($value);
                                 $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_finish`='$value' WHERE `event_id`=%d", $pk));
+                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_finish`='%s' WHERE `event_id`=%d",$value , $pk));
 
                                 break;
 
@@ -2526,7 +2669,7 @@ function JKT_AJAX_query_handler()
                                 $value = trim($value);
                                 $value = stripcslashes($value);
                                 if (!is_nan($value)) {
-                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_category_id`='$value' WHERE `event_id`=%d", $pk));
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_category_id`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }
 
                                 break;
@@ -2536,7 +2679,7 @@ function JKT_AJAX_query_handler()
                                 $value = trim($value);
                                 $value = stripcslashes($value);
                                 if (!is_nan($value)) {
-                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_location_id`='$value' WHERE `event_id`=%d", $pk));
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_location_id`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }
 
                                 break;
