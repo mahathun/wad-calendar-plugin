@@ -730,6 +730,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                     // initiating the bootstrap tooltip
                     jQuery(document).ready(function () {
                         jQuery(\'[data-toggle="tooltip"]\').tooltip();
+                        
 
                         //stop triggering the parent cell on click function when clicking on a event
                         jQuery("#dayCell a").click(function (e) {
@@ -1491,6 +1492,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
                         var _event = "";
+
                         //console.log(jQuery(element).children());
                         var eventList = jQuery(element).children();
 
@@ -1501,6 +1503,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                             jQuery(\'#show-all-events-tab\').hide();
                             jQuery(\'#show-all-events-tab\').removeClass("active");
                             jQuery(\'#add-new-events-tab\').addClass("active");
+                            jQuery(\'#btnAddNewEvent\').show();
+
 
                             jQuery(\'#eventsTab\').removeClass(\'active in\');
                             jQuery(\'#addNewEventTab\').addClass(\'active in\');
@@ -1509,6 +1513,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                             jQuery(\'#show-all-events-tab\').show();
                             jQuery(\'#show-all-events-tab\').addClass("active");
                             jQuery(\'#add-new-events-tab\').removeClass("active");
+                            jQuery(\'#btnAddNewEvent\').hide();
 
                             jQuery(\'#eventsTab\').addClass(\'active in\');
                             jQuery(\'#addNewEventTab\').removeClass(\'active in\');
@@ -1617,8 +1622,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                         <ul class="nav nav-tabs">
                                             <li id="show-all-events-tab" class="active"><a data-toggle="tab"
-                                                                                           href="#eventsTab">Events</a></li>
-                                            <li id="add-new-events-tab"><a data-toggle="tab" href="#addNewEventTab">Add New Event</a>
+                                                                                           href="#eventsTab" onclick="jQuery(\'#btnAddNewEvent\').hide();">Events</a></li>
+                                            <li id="add-new-events-tab" ><a data-toggle="tab" href="#addNewEventTab" onclick="jQuery(\'#btnAddNewEvent\').show();">Add New Event</a>
                                             </li>
 
                                         </ul>
@@ -1633,10 +1638,10 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                                 </div>
                                             </div>
-                                            <div id="addNewEventTab" class="tab-pane fade">
-                                               
+                                            <div id="addNewEventTab" class="tab-pane fade " >
+                                               '.(($current_user->ID==0)? "<div class=\"alert alert-warning\" style=\"margin-top:1em;\">You need to be loged in to create new events. Please log in and refresh the page.</div>":"" ).'
 
-                                                <form class="form-horizontal" id="add-new-event-form">
+                                                <form class="form-horizontal '.(($current_user->ID==0)?" hide ":"").'" id="add-new-event-form" >
                                                     <fieldset>
 
                                                         <div class="row">
@@ -1653,8 +1658,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                 <div class="form-group">
                                                                   <label class="col-md-6 " for="txtEventName">Event Name</label>  
                                                                   <div class="col-md-6">
-                                                                  <input id="txtEventName" name="txtEventName" type="text" placeholder="Event Name" class="form-control input-md" required="">
-                                                                   
+                                                                  <input id="txtEventName" name="txtEventName" type="text" placeholder="Enter event name" class="form-control input-md" required="">
+                                                                  <small>3-100 characters</small>
                                                                   </div>
                                                                 </div>
                                                             </div>
@@ -1667,8 +1672,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                                                   <label class="col-md-12 " for="textareaDescription">Event Description</label>
                                                                   <div class="col-md-12">
-                                                                        <textarea class="wp-editor-area col-md-12" rows="7" cols="40" name="textareaDescription" id="textareaDescription"></textarea>
-                                                                    
+                                                                        <textarea class="wp-editor-area col-md-12" rows="7" cols="40" placeholder="Enter event description" name="textareaDescription" id="textareaDescription"></textarea>
+                                                                        <small>0-1000 characters</small>
                                                                   </div>
                                                                     
                                                                 </div>
@@ -1682,7 +1687,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                
                                                                 <!-- Select Basic -->
                                                                 <div class="form-group">
-                                                                  <label class="col-md-6 " for="cmbEventStatus">Event Status</label>
+                                                                  <label class="col-md-6 " for="cmbEventStatus" >Event Status
+                                                                  <img title="Published events are vissible to all members while draft events are visible only to the author" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventStatus" name="cmbEventStatus" class="form-control">
                                                                       <option value="0">Draft</option>
@@ -1693,7 +1700,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                                                 <!-- Select Basic -->
                                                                 <div class="form-group">
-                                                                  <label class="col-md-6 " for="cmbEventRecurrence">Recurring Frequency</label>
+                                                                  <label class="col-md-6 " for="cmbEventRecurrence">Recurring Frequency
+                                                                  <img title="Determine how often each event needs to be repeat" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventRecurrence" name="cmbEventRecurrence" class="form-control">
                                                                       <option value="0">None</option>
@@ -1723,7 +1732,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
 
                                                                 <div class="form-group">
-                                                                  <label class="col-md-6 " for="cmbEventCategory">Event Category</label>
+                                                                  <label class="col-md-6 " for="cmbEventCategory">Event Category
+                                                                  <img title="All published categories will be available to select" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventCategory"  name="cmbEventCategory" class="form-control">
                                                                       
@@ -1736,7 +1747,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                             <!-- second half starts-->
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
-                                                                  <label class="col-md-6 " for="cmbEventLocation">Event Location</label>
+                                                                  <label class="col-md-6 " for="cmbEventLocation">Event Location
+                                                                  <img title="All published locations will be available to select" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventLocation"  name="cmbEventLocation" class="form-control">
                                                                       
@@ -1768,7 +1781,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                     </div>
                                     <div class="modal-footer">
-                                        <button id ="btnAddNewEvent" type="button" onclick="jQuery(\'#add-new-event-form\').submit();" class="btn btn-primary">Add</button>
+                                        '.(($current_user->ID!=0)? "<button id =\"btnAddNewEvent\" type=\"button\" onclick=\"jQuery('#add-new-event-form').submit();\" class=\"btn btn-primary\">Add</button>":"").'
                                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -1907,7 +1920,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                 <!--posting comments-->
                                                                 <div>
                                                                     <div id="commentResponseMsg"></div>
-                                                                     <form id="commentForm">
+                                                                     <form id="commentForm"'.(($current_user->ID==0)?" class=\"hide\"":"").'>
                                                                       <div class="form-group">
                                                                         <label for="comment">Your Comment</label>
                                                                         <textarea id="comment" name="comment" required="true" class="form-control" rows="3"></textarea>
@@ -1950,7 +1963,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
     
    // echo pr($shortcodeattributes);
     //days of the week used for headings. This particular method is not particulary multilanguage friendly.
-    $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+    $weekdays = array('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
     extract(shortcode_atts(array('year' => '-', 'month' => '-', 'week' => weekOfMonth(date("Y-m-d")), 'defaultview' => '-', 'dayfordayview' => '-'), $shortcodeattributes));
     
     
@@ -2021,9 +2034,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
             $returnText.= '<main ><div id="calendar">
                             <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
-                                <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1)?12:$month-1).','.(($month==1)?$year-1:$year).')" >Prev Month</span>
-                                <span id="calendarHeaderText" data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
-                                <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12)?1:$month+1).','.(($month==12)?$year+1:$year).')" >Next Month</span>
+                                <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1)?12:$month-1).','.(($month==1)?$year-1:$year).')" ><i class="glyphicon glyphicon-chevron-left"></i><span class="hidden-xs"> Prev Month</span></span>
+                                <span id="calendarHeaderText" data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:1.3em">' . $thedate . '</span>
+                                <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12)?1:$month+1).','.(($month==12)?$year+1:$year).')" ><span class="hidden-xs">Next Month </span><i class="glyphicon glyphicon-chevron-right"></i></span>
                             </div>
                             
 
@@ -2050,9 +2063,9 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             
             $returnText.= '<main id="calendar">
                                 <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
-                                    <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" >Prev Week</span>
-                                    <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
-                                    <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12 && $week == $no_of_weeks_in_the_month)?1:(($week == $no_of_weeks_in_the_month)?$month+1:$month)).','.(($month==12 && $week==$no_of_weeks_in_the_month)?$year+1:$year).','.$nextWeek.')" >Next Week</span>
+                                    <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" ><i class="glyphicon glyphicon-chevron-left"></i><span class="hidden-xs"> Prev Week</span></span>
+                                    <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:1.3em">' . $thedate . '</span>
+                                    <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==12 && $week == $no_of_weeks_in_the_month)?1:(($week == $no_of_weeks_in_the_month)?$month+1:$month)).','.(($month==12 && $week==$no_of_weeks_in_the_month)?$year+1:$year).','.$nextWeek.')" ><span class="hidden-xs">Next Week </span><i class="glyphicon glyphicon-chevron-right"></i></span>
                                 </div>
                                 
 
@@ -2090,7 +2103,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             $returnText.= '<main id="calendar">
                                 <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
                                     <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.$prevMon.','.$prevYear.','.$prevWeek.','.$prevDay.')" >Prev Day</span>
-                                    <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:2em">' . $thedate . '</span>
+                                    <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:1.3em">' . $thedate . '</span>
                                     <span style="float:right"  class="btn btn-sm btn-primary" onclick="redrawCalander('.$nextMon.','.$nextYear.','.$nextWeek.','.$nextDay.')" >Next Day</span>
                                 </div>
                                 
@@ -2135,11 +2148,11 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         //refer to lines 43-53 in the WADcalendar.css for information regarding the data-date styling
         if($defaultview==0 ){
             //if default view is month prints the last days of the previous month
-            $returnText.= '<div data-date="' . $startday++ . '"></div>';//!! this increments $startday AFTER the value has been used
+            $returnText.= '<div class="disabledDay" data-date="' . $startday++ . '"></div>';//!! this increments $startday AFTER the value has been used
 
         }else if($defaultview==1 && $week==1){
             //if default view is week and current week is the first week of the month, prints the last days of the previous month 
-            $returnText.= '<div data-date="' . $startday++ . '"></div>';//!! this increments $startday AFTER the value has been used
+            $returnText.= '<div class="disabledDay" data-date="' . $startday++ . '"></div>';//!! this increments $startday AFTER the value has been used
 
         }
 
@@ -2344,7 +2357,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         //PART 3: last week with blank days (cells) or couple of days from next month
         $j = 1; //counter for next months days used to fill in the blank days at the end
         for ($i = 0; $i < $lastblankdays; $i++)
-            $returnText.= '<div data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
+            $returnText.= '<div class="disabledDay" data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
         //close off the calendar    
         $returnText.= '</div></main>';
     }else if ($defaultview==1 && $week == $no_of_weeks_in_the_month) {
@@ -2352,7 +2365,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         //PART 3: last week with blank days (cells) or couple of days from next month
         $j = 1; //counter for next months days used to fill in the blank days at the end
         for ($i = 0; $i < $lastblankdays; $i++)
-            $returnText.= '<div data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
+            $returnText.= '<div class="disabledDay" data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
         //close off the calendar    
         $returnText.= '</div></div> </main>';
     }
@@ -2406,17 +2419,23 @@ function JKT_AJAX_query_handler()
 
             if(validatePK($pk) && validateComment($comment)){
 
-                $messages_table = $wpdb->prefix . 'js_messages'; 
-               
-                $wpdb->insert($messages_table,
-                      array( 'message_date' => date('Y-m-d H:i:s'),
-                             'message_content' => $comment,
-                             'message_author' => $current_user->ID,
-                             'event_id' => $pk,
-                             ),
-                      array( '%s', '%s', '%d', '%d') );
+                if($current_user->ID !=0){
 
-                echo "Your comment was successfuly added";
+                    $messages_table = $wpdb->prefix . 'js_messages'; 
+                   
+                    $wpdb->insert($messages_table,
+                          array( 'message_date' => date('Y-m-d H:i:s'),
+                                 'message_content' => $comment,
+                                 'message_author' => $current_user->ID,
+                                 'event_id' => $pk,
+                                 ),
+                          array( '%s', '%s', '%d', '%d') );
+
+                    echo "Your comment was successfuly added";
+                }else{
+                    http_response_code(400);
+                    echo "You need to logged into add comments";
+                }
 
 
 
@@ -2455,7 +2474,17 @@ function JKT_AJAX_query_handler()
             // A little data validation. Check if all fields contains something.
             // user must be a logged in
             if( ($validator!=1) || ($current_user->ID == 0)) { 
-                $msg = "Event was not inserted to the DB. Something went wrong. Make sure all your inputs are valid and please try again."; 
+                $msg = "Your event was not inserted. Please check the data and try again.";
+                
+                if($validator!=1){
+                    $msg = "Please enter valid data when adding a new event.";
+                }
+
+                if($current_user->ID ==0){
+                    $msg = "You are not authorized to add events. Please login.";
+                }
+
+               // $msg = "Event was not inserted to the DB. Something went wrong. Make sure all your inputs are valid and please try again."; 
                 //$msg = date('Y-m-d', strtotime($eventFinishDate));
                 //$msg = strtotime($eventFinishDate);
                 http_response_code(400);
@@ -2549,10 +2578,8 @@ function JKT_AJAX_query_handler()
         exit;
     }
 
+    //if the event being editing or retriving data lists
     if(isset($_REQUEST['eventEdit'])){
-
-
-
 
         if (!is_nan($pk)) { // checking for valid eventId
             global $wpdb, $current_user;
@@ -2605,7 +2632,7 @@ function JKT_AJAX_query_handler()
                             echo json_encode($venue_list_json);
                             break;
 
-                        //returning comments for a event
+                        //returning comments list for a event
                         case 'getComments':
                             $messages_table = $wpdb->prefix . 'js_messages';
                             $wp_user_table = $wpdb->prefix. 'users';
@@ -2643,22 +2670,34 @@ function JKT_AJAX_query_handler()
             }
             //http_response_code(400);
 
-            //if the events are being edited
+            //if events are being edited
             // if (isset($_GET['eventEdit']) && !empty($_GET['eventEdit'])) {
                 if ($auth_user_id == $current_user->ID || current_user_can('manage_options')) { // checking for valid authorization
                     if ($value != "") {
                         switch ($name) {
 
                             case 'eventName':
-                                $value = trim($value);
-                                $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='%s' WHERE `event_id`=%d",$value , $pk));
+                                if(validateEventName($value)){
+                                    $value = trim($value);
+                                    $value = stripcslashes($value);
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='%s' WHERE `event_id`=%d",$value , $pk));    
+                                }else{
+                                    echo "Please enter a valid event name and try again.";
+                                    http_response_code(400);
+                                }
+                                
                                 break;
 
                             case 'eventDescription':
-                                $value = trim($value);
-                                $value = stripcslashes($value);
-                                $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='%s' WHERE `event_id`=%d", $value ,$pk));
+                                if(validateEventDescription($value)){
+                                    $value = trim($value);
+                                    $value = stripcslashes($value);
+                                    $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='%s' WHERE `event_id`=%d", $value ,$pk));
+                                }else{
+                                    echo "Please enter a valid event description and try again.";
+                                    http_response_code(400);
+                                }
+                                
                                 break;
 
                             case 'eventStatus':
@@ -2677,6 +2716,9 @@ function JKT_AJAX_query_handler()
                                     $value = trim($value);
                                     $value = stripcslashes($value);
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_recurring`='%d' WHERE `event_id`=%d",$value , $pk));
+                                }else{
+                                    echo "Please select a valid recurring frequency";
+                                    http_response_code(400);
                                 }
                                 break;
 
@@ -2700,6 +2742,9 @@ function JKT_AJAX_query_handler()
                                 $value = stripcslashes($value);
                                 if (!is_nan($value)) {
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_category_id`='%d' WHERE `event_id`=%d",$value , $pk));
+                                }else{
+                                    echo "Please select a valid category";
+                                    http_response_code(400);
                                 }
 
                                 break;
@@ -2710,6 +2755,9 @@ function JKT_AJAX_query_handler()
                                 $value = stripcslashes($value);
                                 if (!is_nan($value)) {
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_location_id`='%d' WHERE `event_id`=%d",$value , $pk));
+                                }else{
+                                    echo "Please select a valid location";
+                                    http_response_code(400);
                                 }
 
                                 break;
@@ -2724,7 +2772,7 @@ function JKT_AJAX_query_handler()
                         }
                     } else {
                         //if the submitted value is empty
-                        echo "You are not allowed to enter empty string. Please try again with a valid data";
+                        echo "You are not allowed to enter empty string. Please try again with valid data";
                         http_response_code(400);
                     }
                 } else {
@@ -2752,7 +2800,7 @@ function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, 
    $returnStatment = false;
 
    //validation rules for the event name
-   if( (strlen($eventName) <100) && (strlen($eventName)>0) ){
+   if( validateEventName($eventName) ){
         $returnStatment = true;
    }else{
         $returnStatment = false;
@@ -2760,7 +2808,7 @@ function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, 
 
 
    //validation rules for event description
-   if( (strlen($eventDescription) >0) && (strlen($eventDescription) <1000) ){
+   if( validateEventDescription($eventDescription) ){ 
         $returnStatment = $returnStatment && true;
    }else{
         $returnStatment = false;
@@ -2797,14 +2845,14 @@ function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, 
    }
 
    //validation rules for event category
-   if( !is_nan($eventCategoryId)){
+   if( !empty($eventCategoryId) && !is_nan($eventCategoryId)){
         $returnStatment = $returnStatment && true;
    }else{
         $returnStatment = false;
    }
 
    //validation rules for event location
-   if( !is_nan($eventLocationId)){
+   if( !empty($eventCategoryId) && !is_nan($eventLocationId)){
         $returnStatment = $returnStatment && true;
    }else{
         $returnStatment = false;
@@ -2812,6 +2860,22 @@ function validate($eventName, $eventDescription,$eventStatus, $eventRecurrence, 
    
 
    return $returnStatment;
+}
+
+function validateEventDescription(){
+    if((strlen($eventDescription) <=1000) ){ //&& (strlen($eventDescription) >=3)
+        return true;
+    }else{
+        return false;
+    }
+}
+
+function validateEventName($eventName){
+    if( (strlen($eventName) <=100) && (strlen($eventName)>=3) ){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 function validatePK($pk){
