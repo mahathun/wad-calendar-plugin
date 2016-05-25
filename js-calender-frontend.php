@@ -734,6 +734,7 @@ function get_all_events($desc, $date){
 
 //copy of the WADCal1 function redesigned as a dynamic call
 function WadCal1DynamicRedraw($shortcodeattributes){
+    global $current_user;
 
     $returnText = "";
 
@@ -900,6 +901,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                 if( messages != null && messages.length != undefined){ // check to see whether there are comments for the event
                                                                     for(var i =0; i<messages.length;i++){
 
+                                                                        
+
                                                                         jQuery("#messagesList").append("<li class=\"list-group-item \">"+
                                                                                                 "<div class=\"row\">"+
                                                                                                     "<div class=\"col-xs-2 col-md-1\">"+
@@ -908,8 +911,10 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                                                         "<div>"+
                                                                                                             "<div class=\"mic-info\">"+
                                                                                                                 "By: <a href=\"#\">"+messages[i].messageAuthor+"</a> on "+messages[i].messageDate+
-                                                                                                            "</div>"+
+                                                                                                                ((messages[i].messageAuthorId=='.$current_user->ID.')?"<div class=\"pull-right\"><i pk=\""+messages[i].pk+"\" onclick=\"editComment(this)\" id=\"editComment\" class=\"glyphicon glyphicon-edit\" style=\"color:#337AB7;cursor: pointer; cursor: hand;\"></i> </div>":"")+
                                                                                                         "</div>"+
+                                                                                                            "</div>"+
+
                                                                                                         "<div class=\"comment-text\">"+
                                                                                                             messages[i].messageContent+
                                                                                                         "</div>"+
@@ -1675,8 +1680,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                         <ul class="nav nav-tabs">
                                             <li id="show-all-events-tab" class="active"><a data-toggle="tab"
-                                                                                           href="#eventsTab" onclick="jQuery(\'#btnAddNewEvent\').hide();">Events</a></li>
-                                            <li id="add-new-events-tab" ><a data-toggle="tab" href="#addNewEventTab" onclick="jQuery(\'#btnAddNewEvent\').show();">Add New Event</a>
+                                                                                           href="#eventsTab" onclick="jQuery(\'#btnAddNewEvent\').hide();"><i class="glyphicon glyphicon-th-list"></i> <span class="hidden-xs">Events</span></a></li>
+                                            <li id="add-new-events-tab" ><a data-toggle="tab" href="#addNewEventTab" onclick="jQuery(\'#btnAddNewEvent\').show();"><i class="glyphicon glyphicon-pencil"></i> <span class="hidden-xs">Add New Event</span></a>
                                             </li>
 
                                         </ul>
