@@ -75,6 +75,9 @@ class DJK_upcoming_events extends WP_Widget {
     //displaying the fron end
     function widget($args, $instance){
 
+        $timezone = "Pacific/Auckland";
+        date_default_timezone_set($timezone);
+
         echo '<!-- Search event modal -->
                     <div class="bootstrap-wrapper">
                         <div id="eventSearch" class="modal fade" role="dialog">
@@ -92,7 +95,7 @@ class DJK_upcoming_events extends WP_Widget {
                                         <div class="input-group">
                                           <input id="searchEvents" type="text" class="form-control" placeholder="Search description...">
                                           <span class="input-group-btn">
-                                            <button class="btn btn-default" type="button" onclick="searchDesc()">GoS</button>
+                                            <button class="btn btn-default" type="button" onclick="searchDesc()">Search</button>
                                           </span>
                                         </div><!-- /input-group -->
                                       </div><!-- /.col-lg-6 -->
@@ -175,13 +178,13 @@ class DJK_upcoming_events extends WP_Widget {
                             <div class="list-group widget-upcoming-event-list">';
                                                 
 
-
+                          
         foreach ($allEvents as $event) {
 
             if( ($counter < $no_of_events_to_show) && ($event['event_timestamp'] > $currentTimestamp)){
                 $counter+=1;
                
-                echo '<div class="list-group-item bs-callout bs-callout-info">
+                echo '<div class="list-group-item bs-callout '.(($event['event_status'] ==1)?"bs-callout-info":"bs-callout-default").'">
                                                     <a href="#" class="col-md-12">
                                                         <span class="truncate pull-left">'.$event['event_name'].'</span>
                                                         <span class="badge pull-right">'.$event['event_date'].'</span>
@@ -271,7 +274,11 @@ function get_events($year, $month)
 
     // Retrieve events from database
     $event_table = $wpdb->prefix . 'js_events';
-    $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id FROM $event_table ORDER BY event_name DESC";
+    $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id 
+                FROM $event_table ".
+                ((current_user_can('manage_options'))?"":"WHERE event_organizer_id='$current_user->ID' OR event_status='1' ")
+                
+                ."ORDER BY event_name DESC";
     $event_list = $wpdb->get_results($query);
 
 
@@ -488,7 +495,11 @@ function get_all_events($desc, $date){
 
     // Retrieve events from database
     $event_table = $wpdb->prefix . 'js_events';
-    $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id FROM $event_table ORDER BY event_name DESC";
+    $query = "SELECT event_id, event_name, event_status, event_start, event_finish, event_recurring, event_description, event_category_id,event_location_id 
+    FROM $event_table ".
+                ((current_user_can('manage_options'))?"":"WHERE event_organizer_id='$current_user->ID' OR event_status='1' ")
+                
+                ."ORDER BY event_name DESC";
     
     //search events according to the description
     if($desc!= false && !empty($desc)){
@@ -547,10 +558,11 @@ function get_all_events($desc, $date){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
-                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
-                    $dd = new DateTime($event_recurring_date);
+                    
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
+                        $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                        $cDate = new DateTime($event_recurring_date);
 
                         //echo "<script>alert('start Time : ". $startDateTimestamp."/nFinish Time : ".$finishDateTimestamp."')</script>";
 
@@ -561,7 +573,7 @@ function get_all_events($desc, $date){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
-                        $obj["event_timestamp"] = $dd->getTimestamp();
+                        $obj["event_timestamp"] = $cDate->getTimestamp();
 
                         //if ($year == $obj["event_year"] && $month == $obj["event_month"]) {
                             array_push($eventarray, $obj);
@@ -584,13 +596,13 @@ function get_all_events($desc, $date){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
-                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
-                    $dd = new DateTime($event_recurring_date);
+                   
 
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
-
+                        $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                        $cDate = new DateTime($event_recurring_date);
                        
 
                         $obj["event_year"] = $startDate->format("Y");
@@ -598,7 +610,7 @@ function get_all_events($desc, $date){
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
-                        $obj["event_timestamp"] = $dd->getTimestamp();
+                        $obj["event_timestamp"] = $cDate->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -628,22 +640,22 @@ function get_all_events($desc, $date){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
-                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
-                    $dd = new DateTime($event_recurring_date);
+                    
 
 
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
 
-                       
+                        $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                        $cDate = new DateTime($event_recurring_date);
 
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
-                        $obj["event_timestamp"] = $dd->getTimestamp();
+                        $obj["event_timestamp"] = $cDate->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -673,21 +685,21 @@ function get_all_events($desc, $date){
                     $startDateTimestamp = $startDate->getTimestamp();
                     $finishDateTimestamp = $finishDate->getTimestamp();
 
-                    $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
-                    $dd = new DateTime($event_recurring_date);
+                    
 
 
 
                     while ($finishDateTimestamp >= $startDateTimestamp) {
 
-                       
+                        $event_recurring_date = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d")." ".$startDate->format("H").":".$startDate->format("i").":".$startDate->format("s");
+                        $cDate = new DateTime($event_recurring_date);    
 
                         $obj["event_year"] = $startDate->format("Y");
                         $obj["event_month"] = $startDate->format("m");
                         $obj["event_day"] = $startDate->format("d");
                         $obj["event_time"] = $startDate->format("h").":".$startDate->format("i")." ".$startDate->format("a");
                         $obj["event_date"] = $startDate->format("Y")."-".$startDate->format("m")."-".$startDate->format("d");
-                        $obj["event_timestamp"] = $dd->getTimestamp();
+                        $obj["event_timestamp"] = $cDate->getTimestamp();
 
                         $var = (($month == $obj["event_month"])) ? "true" : "false";
                         //echo "<script>alert('start Time : ". $year ."<br>".($obj["event_year"])."<br>".$var."/nFinish Time : ".$finishDateTimestamp."')</script>";
@@ -2311,6 +2323,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
         $isIdSet=false;
         foreach ($event_list as $event) {
+            $events_exist = 1;
             $upComingId = "";
             if( (strtotime($event['event_date']) >strtotime( date('Y-m-d H:i:s'))) && !$isIdSet){
                 $upComingId = "next-up-comming-event";
@@ -2343,6 +2356,29 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                 </div>";
 
         }
+
+
+        //printing "NO events div " if there are no events in the day view
+        if($defaultview=="3" && !isset($events_exist)){
+
+            $returnText.="<div class=\" \">
+                                            <div class=\"row\">
+                                                <div class=\"[ col-xs-12 col-sm-offset-2 col-sm-8 ]\">
+                                                    <ul class=\"event-list\">
+                                                        <li >
+                                                            
+                                                            <div class=\"info\">
+                                                                <h2 class=\"title\" style='text-align:center;padding-top:1em;'>No events</h2>
+                                                                <p class=\"desc\"></p>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>";
+        }
+
+
         //automatically scrolling to the next up coming event 
         $returnText.="</div> <script>jQuery(\"#list-view-container\").animate({
                                                                         scrollTop: (jQuery(\"#next-up-comming-event\").offset().top-jQuery(\"#list-view-container\").offset().top)
