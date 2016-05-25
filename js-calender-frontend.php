@@ -2272,7 +2272,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                         if ($event["event_day"] == ($i + 1)) {
                             //$returnText.= $event["event_name"];
                             $returnText.= '<div id="eventDetailsModel" class="bootstrap-wrapper" style="margin:0px 0px 5px 0px" >
-                                <a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a></div>';
+                                <a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . htmlspecialchars(json_encode($event),ENT_QUOTES, 'UTF-8') . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a></div>';
 
                         }
                     }
@@ -2314,7 +2314,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                             <span class=\"time\">".$event['event_time']."</span>
                                                         </time>
                                                         <div class=\"info\">
-                                                            <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
+                                                            <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . htmlspecialchars(json_encode($event),ENT_QUOTES, 'UTF-8') . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
                                                             <p class=\"desc\">".$event['event_description']."</p>
                                                         </div>
                                                     </li>
@@ -2392,7 +2392,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                         <span class=\"time\">".$event['event_time']."</span>
                                                     </time>
                                                     <div class=\"info\">
-                                                        <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
+                                                        <h2 class=\"title\">".'<a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . htmlspecialchars(json_encode($event),ENT_QUOTES, 'UTF-8') . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a>'."</h2>
                                                         <p class=\"desc\">".$event['event_description']."</p>
                                                     </div>
                                                 </li>
