@@ -954,7 +954,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                         //loading the google map onto the div on change
                         jQuery(document).on("change", "#cmbEventLocation", function() {
-                            console.log(jQuery(this).val()); // the selected options"s value
+                            //console.log(jQuery(this).val()); // the selected options"s value
                             var newValue = jQuery(this).val();
 
                             jQuery.ajax({
@@ -964,7 +964,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                     for (var i = sourceObj.length - 1; i >= 0; i--) {
 
                                         if (sourceObj[i].value == newValue) {
-                                            console.log(sourceObj[i].text);
+                                            //console.log(sourceObj[i].text);
                                             initialize(sourceObj[i].text,true);
 
                                         }
@@ -1155,7 +1155,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                         //converting the address to longitudes and latitudes
                         function geocodeAddress(geocoder, resultsMap, add) {
                             var address = add;
-                            console.log(address);
+                            //console.log(address);
                             geocoder.geocode({\'address\': address}, function (results, status) {
                                 if (status === google.maps.GeocoderStatus.OK) {
                                     resultsMap.setCenter(results[0].geometry.location);
@@ -1387,6 +1387,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                         url: "?eventEdit=true&eventGetData=true&action=getComments&pk="+eventData.event_id,
                                         success: function (data) {
                                             var messages = JSON.parse(data);
+                                            //console.log(messages);
                                             $("#messagesList").empty();
 
                                             if( messages != null && messages.length != undefined){ // check to see whether there are comments for the event
@@ -1400,8 +1401,10 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                                     "<div>"+
                                                                                         "<div class=\"mic-info\">"+
                                                                                             "By: <a href=\"#\">"+messages[i].messageAuthor+"</a> on "+messages[i].messageDate+
-                                                                                        "</div>"+
+                                                                                            ((messages[i].messageAuthorId=='.$current_user->ID.')?"<div class=\"pull-right\"><i pk=\""+messages[i].pk+"\" onclick=\"editComment(this)\" id=\"editComment\" class=\"glyphicon glyphicon-edit\" style=\"color:#337AB7;cursor: pointer; cursor: hand;\"></i> </div>":"")+
                                                                                     "</div>"+
+                                                                                        "</div>"+
+
                                                                                     "<div class=\"comment-text\">"+
                                                                                         messages[i].messageContent+
                                                                                     "</div>"+
@@ -1449,6 +1452,44 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
         $returnText .=  '
                     }
+
+                    //edit comment function
+                    function editComment(element){
+                        var comment= jQuery(element).parent().parent().parent().next().html();
+                        var textArea= jQuery("<textarea onBlur=\"saveComment(this)\" style=\"width:100%\">");
+                       
+                        textArea.attr("pk", jQuery(element).attr("pk"));
+                        
+                        textArea.val(comment);
+                        jQuery(element).parent().parent().parent().next().replaceWith(textArea);
+                        textArea.focus();
+
+                    }
+
+                    //save comment function
+                    function saveComment(element){
+                        var d = {"pk":jQuery(element).attr("pk"), "text":jQuery(element).val()};
+                        jQuery("body").css("cursor","wait");
+                        jQuery.ajax({
+                                      type: "POST",
+                                      url: "?commentEdit=true",
+                                      data: d,
+                                      success: function(response){
+                                        
+                                        var elm = jQuery("<div class=\"comment-text\">"+jQuery(element).val()+"</div>");
+                                        jQuery(element).replaceWith(elm);
+                                        jQuery("body").css("cursor","auto");
+
+
+                                      },error:function(response){
+                                        alert("failed");
+                                        jQuery(element).focus();
+                                      }
+                                  });
+                                                    
+
+                    }
+
 
 
                     //populating the event model
@@ -1560,7 +1601,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                     function populateComboBox(element){
                         jQuery(element).empty();
 
-                        console.log(element.selector);
+                        //console.log(element.selector);
 
                         var URL = "";
                         if(element.selector =="#cmbEventCategory"){
@@ -1598,7 +1639,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                 for (var i = sourceObj.length - 1; i >= 0; i--) {
 
                                                     if (sourceObj[i].value == newValue) {
-                                                        console.log(sourceObj[i].text);
+                                                        //console.log(sourceObj[i].text);
                                                         initialize(sourceObj[i].text,true);
 
                                                     }
@@ -2202,7 +2243,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                     if ($event["event_day"] == ($i + 1)) {
                         //$returnText.= $event["event_name"];
                         $returnText.= '<div id="eventDetailsModel" class="bootstrap-wrapper" style="margin:0px 0px 5px 0px" >
-                            <a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . json_encode($event) . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a></div>';
+                            <a id="event_' . $event["event_id"] . '" data-toggle="modal" data-target="#eventDetails" class="label ' . (($event["event_status"] == 1) ? "label-info" : "label-default") . '" event-data=\'' . htmlspecialchars(json_encode($event),ENT_QUOTES, 'UTF-8') . '\'" title="' . $event["event_description"] . '" onclick="loadEventData(event_' . $event["event_id"] . ')">' . $event["event_name"] . '</a></div>';
 
                     }
                 }
@@ -2448,6 +2489,7 @@ function JKT_AJAX_query_handler()
 
         $newEvent = $_REQUEST['eventNew']; // check to see the request is to add a new event
         $newComment = $_REQUEST['commentNew']; // check to see whether the request is to add a comment
+        $editComment = $_REQUEST['commentEdit']; // check to see whether the request is to edit a comment
 
         //adding new comments
         if(isset($newComment)){
@@ -2471,6 +2513,46 @@ function JKT_AJAX_query_handler()
                 }else{
                     http_response_code(400);
                     echo "You need to logged into add comments";
+                }
+
+
+
+            }else{
+                http_response_code(400);
+                echo "Something went wrong. Pl. try again. And this time, make sure to enter valid data. ;)";
+            }
+
+            
+
+            
+            exit;
+
+        }
+        //editing comments
+        if(isset($editComment)){
+            $comment = $_REQUEST['text'];
+            $comment = trim($comment);
+            $comment = stripcslashes($comment);
+
+            if(validatePK($pk) && validateComment($comment)){
+                $messages_table = $wpdb->prefix . 'js_messages'; 
+
+                $auth_user_id_array = $wpdb->get_results($wpdb->prepare("SELECT `message_author` FROM `$messages_table` WHERE `message_id`=%d", $pk));
+                $auth_user_id = $auth_user_id_array[0]->message_author;
+
+                if($current_user->ID == $auth_user_id){
+
+                    
+
+                    
+                    $wpdb->query($wpdb->prepare("UPDATE `$messages_table` SET `message_content`='%s', `message_date`='%s' WHERE `message_id`=%d",$comment ,date('Y-m-d H:i:s'), $pk)); 
+                   
+                    
+
+                    echo "Your comment was successfuly added";
+                }else{
+                    http_response_code(400);
+                    echo "You are not authorized to edit this comment";
                 }
 
 
@@ -2673,7 +2755,7 @@ function JKT_AJAX_query_handler()
                             $messages_table = $wpdb->prefix . 'js_messages';
                             $wp_user_table = $wpdb->prefix. 'users';
 //                             
-                            $messages_list = $wpdb->get_results("SELECT $messages_table.message_date, $messages_table.message_content, $wp_user_table.display_name
+                            $messages_list = $wpdb->get_results("SELECT $messages_table.message_id, $messages_table.message_date, $messages_table.message_content, $messages_table.message_author, $wp_user_table.display_name
                                                                     FROM `$messages_table`
                                                                     INNER JOIN `$wp_user_table`
                                                                     ON $messages_table.message_author = $wp_user_table.ID
@@ -2683,7 +2765,7 @@ function JKT_AJAX_query_handler()
                                                                     ORDER BY $messages_table.message_date DESC");
 
                             foreach ($messages_list as $message) {
-                                $messages_list_json[] = array('messageDate' => $message->message_date, 'messageContent' => $message->message_content, 'messageAuthor'=> $message->display_name);
+                                $messages_list_json[] = array('pk'=>$message->message_id, 'messageDate' => $message->message_date, 'messageContent' => $message->message_content, 'messageAuthor'=> $message->display_name, 'messageAuthorId'=>  $message->message_author);
                             }
                             echo json_encode($messages_list_json);
                             
