@@ -2119,7 +2119,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             }
 
             
-            $returnText.= '<main id="calendar">
+            $returnText.= '<main><div id="calendar">
                                 <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
                                     <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.(($month==1 && $week==1)?"12":(($week==1)?$month-1: $month)).','.(($month==1 && $week==1)?$year-1:$year).','.$prevWeek.')" ><i class="glyphicon glyphicon-chevron-left"></i><span class="hidden-xs"> Prev Week</span></span>
                                     <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:1.3em">' . $thedate . '</span>
@@ -2158,7 +2158,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             $nextYear = date('Y', strtotime('+1 day', strtotime($thedate)));
 
 
-            $returnText.= '<main id="calendar">
+            $returnText.= '<main><div id="calendar">
                                 <div class="bootstrap-wrapper" style="text-align:center;padding-bottom:2em;">
                                     <span style="float:left" class="btn btn-sm btn-primary" onclick="redrawCalander('.$prevMon.','.$prevYear.','.$prevWeek.','.$prevDay.')" >Prev Day</span>
                                     <span id="calendarHeaderText" data-week='.$week.' data-month='.$month.' data-year='.$year.' style="text-align:center;font-size:1.3em">' . $thedate . '</span>
@@ -2449,7 +2449,12 @@ function WadCal1DynamicRedraw($shortcodeattributes){
         for ($i = 0; $i < $lastblankdays; $i++)
             $returnText.= '<div class="disabledDay" data-date="' . $j++ . '"></div>'; //!! this increments $j AFTER the value has been used
         //close off the calendar    
-        $returnText.= '</div></div> </main>';
+        $returnText.= '</div> </main>';
+    }else if($defaultview==1){
+        $returnText.= '</div> </main>';
+
+    }else if($defaultview==2){
+        $returnText.='</div></main>';
     }
     
 
