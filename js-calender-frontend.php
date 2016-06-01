@@ -1035,6 +1035,8 @@ function WadCal1DynamicRedraw($shortcodeattributes){
             $returnText.= "jQuery('#eventFinishDate').editable('option', 'disabled', true);";
             $returnText.= "jQuery('#eventCategoryId').editable('option', 'disabled', true);";
             $returnText.= "jQuery('#eventLocationId').editable('option', 'disabled', true);";
+            $returnText.= "jQuery('#eventDescription').editable('option', 'disabled', true);";
+
         }
 
 
@@ -1043,16 +1045,16 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
             // disabling the editable functionality fo the guest users from the UI side
             
-            global $current_user;
-            if ($current_user->ID == 0) {
-                $returnText.= "jQuery('#eventName').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventStatus').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventType').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventStartDate').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventFinishDate').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventCategoryId').editable('option', 'disabled', true);";
-                $returnText.= "jQuery('#eventLocationId').editable('option', 'disabled', true);";
-            }
+            // global $current_user;
+            // if ($current_user->ID == 0) {
+            //     $returnText.= "jQuery('#eventName').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventStatus').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventType').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventStartDate').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventFinishDate').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventCategoryId').editable('option', 'disabled', true);";
+            //     $returnText.= "jQuery('#eventLocationId').editable('option', 'disabled', true);";
+            // }
 
 
         $returnText.="</script>";
@@ -1183,16 +1185,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                             //eventID = eventData.event_id;
 
-                            jQuery(\'#eventModalTitle\').text(eventData.event_name);
-
-                            jQuery(\'#eventName\').text(eventData.event_name);
-                            jQuery(\'#eventDescription\').text(eventData.event_description);
-
-                            jQuery(\'#eventStatus\').text((eventData.event_status == 0) ? "Draft" : "Published");
-                            jQuery(\'#eventType\').text((eventData.event_type == 0) ? "Non-Recurring" : (eventData.event_type == 1) ? "Daily" : (eventData.event_type == 2) ? "Weekly" : "Monthly");
-
-                            jQuery(\'#eventStartDate\').text(eventData.event_start);
-                            jQuery(\'#eventFinishDate\').text(eventData.event_finish);//setting default value when opening the modal
+                           
 
 
 
@@ -1386,6 +1379,12 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                 });
 
 
+
+                                
+                            jQuery(\'#eventStartDate\').text(eventData.event_start);
+                            jQuery(\'#eventFinishDate\').text(eventData.event_finish);//setting default value when opening the modal
+
+                            
                                 //loading comments
                                 $("#commentForm").attr("event",eventData.event_id)
                                 $.ajax({
@@ -1440,7 +1439,30 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                                 }
                                             }
-                                            ;
+                                            ';
+
+
+                            if ($current_user->ID == 0) {
+                                        $returnText.= "$('#eventName').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventStatus').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventType').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventStartDate').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventFinishDate').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventCategoryId').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventLocationId').editable('option', 'disabled', true);";
+                                        $returnText.= "$('#eventDescription').editable('option', 'disabled', true);";
+
+                            }
+            $returnText.='
+
+
+             jQuery(\'#eventModalTitle\').text(eventData.event_name);
+
+                            jQuery(\'#eventName\').text(eventData.event_name);
+                            jQuery(\'#eventDescription\').text(eventData.event_description);
+
+                            jQuery(\'#eventStatus\').text((eventData.event_status == 0) ? "Draft" : "Published");
+                            jQuery(\'#eventType\').text((eventData.event_type == 0) ? "Non-Recurring" : (eventData.event_type == 1) ? "Daily" : (eventData.event_type == 2) ? "Weekly" : "Monthly");
 
 
                                         }
@@ -2810,8 +2832,9 @@ function JKT_AJAX_query_handler()
                                     $value = stripcslashes($value);
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_name`='%s' WHERE `event_id`=%d",$value , $pk));    
                                 }else{
-                                    echo "Please enter a valid event name and try again.";
                                     http_response_code(400);
+
+                                    echo "Please enter a valid event name and try again.";
                                 }
                                 
                                 break;
@@ -2822,8 +2845,9 @@ function JKT_AJAX_query_handler()
                                     $value = stripcslashes($value);
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_description`='%s' WHERE `event_id`=%d", $value ,$pk));
                                 }else{
-                                    echo "Please enter a valid event description and try again.";
                                     http_response_code(400);
+                                    
+                                    echo "Please enter a valid event description and try again.";
                                 }
                                 
                                 break;
@@ -2834,8 +2858,9 @@ function JKT_AJAX_query_handler()
                                     $value = stripcslashes($value);
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_status`='%d' WHERE `event_id`=%d",$value , $pk));
                                 } else {
-                                    echo "Please select a valid status";
                                     http_response_code(400);
+
+                                    echo "Please select a valid status";
                                 }
                                 break;
 
@@ -2845,8 +2870,9 @@ function JKT_AJAX_query_handler()
                                     $value = stripcslashes($value);
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_recurring`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }else{
-                                    echo "Please select a valid recurring frequency";
                                     http_response_code(400);
+
+                                    echo "Please select a valid recurring frequency";
                                 }
                                 break;
 
@@ -2871,8 +2897,9 @@ function JKT_AJAX_query_handler()
                                 if (!is_nan($value)) {
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_category_id`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }else{
-                                    echo "Please select a valid category";
                                     http_response_code(400);
+
+                                    echo "Please select a valid category";
                                 }
 
                                 break;
@@ -2884,8 +2911,9 @@ function JKT_AJAX_query_handler()
                                 if (!is_nan($value)) {
                                     $wpdb->query($wpdb->prepare("UPDATE `wp_js_events` SET `event_location_id`='%d' WHERE `event_id`=%d",$value , $pk));
                                 }else{
-                                    echo "Please select a valid location";
                                     http_response_code(400);
+
+                                    echo "Please select a valid location";
                                 }
 
                                 break;
@@ -2900,20 +2928,23 @@ function JKT_AJAX_query_handler()
                         }
                     } else {
                         //if the submitted value is empty
-                        echo "You are not allowed to enter empty string. Please try again with valid data";
                         http_response_code(400);
+                        echo "You are not allowed to enter empty string. Please try again with valid data";
+                        
                     }
                 } else {
                     // if the current user is not an authorized user
-                    echo "You are not authorized to make changes to this event.";
                     http_response_code(400);
+
+                    echo "You are not authorized to make changes to this event.";
                 }
             //}
 
         } else {
             // if event id is not a number
-            echo "Bad request. :(";
             http_response_code(400);
+
+            echo "Bad request. :(";
             exit;
         }
         exit;    //important for our AJAX to work without returning the whole page
