@@ -1722,6 +1722,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                '.(($current_user->ID==0)? "<div class=\"alert alert-warning\" style=\"margin-top:1em;\">You need to be loged in to create new events. Please log in and refresh the page.</div>":"" ).'
 
                                                 <form class="form-horizontal '.(($current_user->ID==0)?" hide ":"").'" id="add-new-event-form" >
+                                                    <div class="row"><p>&nbsp;</p></div>
                                                     <fieldset>
 
                                                         <div class="row">
@@ -1768,7 +1769,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                 <!-- Select Basic -->
                                                                 <div class="form-group">
                                                                   <label class="col-md-6 " for="cmbEventStatus" >Event Status
-                                                                  <img title="Published events are vissible to all members while draft events are visible only to the author" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  <img title="Published events are vissible to all members while draft events are visible only to the author" data-toggle="tooltip" style="height:1em!important;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
                                                                   </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventStatus" name="cmbEventStatus" class="form-control">
@@ -1781,7 +1782,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                                 <!-- Select Basic -->
                                                                 <div class="form-group">
                                                                   <label class="col-md-6 " for="cmbEventRecurrence">Recurring Frequency
-                                                                  <img title="Determine how often each event needs to be repeat" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  <img title="Determine how often each event needs to be repeat" data-toggle="tooltip" style="height:1em!important;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
                                                                   </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventRecurrence" name="cmbEventRecurrence" class="form-control">
@@ -1813,7 +1814,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
 
                                                                 <div class="form-group">
                                                                   <label class="col-md-6 " for="cmbEventCategory">Event Category
-                                                                  <img title="All published categories will be available to select" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  <img title="All published categories will be available to select" data-toggle="tooltip" style="height:1em!important;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
                                                                   </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventCategory"  name="cmbEventCategory" class="form-control">
@@ -1828,7 +1829,7 @@ function WadCal1DynamicRedraw($shortcodeattributes){
                                                             <div class="col-md-6">
                                                                 <div class="form-group">
                                                                   <label class="col-md-6 " for="cmbEventLocation">Event Location
-                                                                  <img title="All published locations will be available to select" data-toggle="tooltip" style="height:1em;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
+                                                                  <img title="All published locations will be available to select" data-toggle="tooltip" style="height:1em!important;" src="'. plugins_url( 'img/help.png', __FILE__ ) .'" />
                                                                   </label>
                                                                   <div class="col-md-6">
                                                                     <select id="cmbEventLocation"  name="cmbEventLocation" class="form-control">
